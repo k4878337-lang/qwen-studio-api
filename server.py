@@ -398,13 +398,20 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
         # 2. Chat completions (OpenAI standard /v1/chat/completions and /proxy/api/v2/chat/completions)
         if "chat/completions" in self.path:
             auth_header = self.headers.get("Authorization", "")
-            
-            # If user explicitly requested Alibaba DashScope via sk- key with DashScope header
-            if "sk-" in auth_header and self.headers.get("X-Target-Provider", "").lower() == "dashscope":
-                self.proxy_dashscope(raw_body, auth_header)
+            dashscope_key = os.environ.get("DASHSCOPE_API_KEY", "")
+
+            # Check 1: Upstream Alibaba DashScope API (if key in auth header or environment)
+            effective_key = None
+            if auth_header.startswith("Bearer sk-") and not auth_header.startswith("Bearer sk-qwen-local"):
+                effective_key = auth_header
+            elif dashscope_key:
+                effective_key = f"Bearer {dashscope_key}" if not dashscope_key.startswith("Bearer ") else dashscope_key
+
+            if effective_key:
+                self.proxy_dashscope(raw_body, effective_key)
                 return
 
-            # Route to Browser Bridge session
+            # Check 2: Route to local Browser Bridge session (when running locally on phone/Termux)
             tab_id = get_or_open_qwen_tab()
             if tab_id:
                 try:
@@ -428,8 +435,32 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
                 except Exception as ex:
                     print(f"[Bridge Error] {ex}")
 
-            # Fallback to direct proxy
-            self.proxy_request("POST", body=raw_body)
+            # Check 3: If running in Cloud (Render) and PHONE_BRIDGE_URL is configured
+            phone_bridge = os.environ.get("PHONE_BRIDGE_URL", "").rstrip("/")
+            if phone_bridge:
+                self.proxy_to_phone_bridge(phone_bridge, raw_body)
+                return
+
+            # Check 4: If QWEN_TOKEN or QWEN_COOKIE is configured in environment
+            qwen_token = os.environ.get("QWEN_TOKEN", "")
+            qwen_cookie = os.environ.get("QWEN_COOKIE", "")
+            if qwen_token or qwen_cookie:
+                self.proxy_request("POST", body=raw_body)
+                return
+
+            # If no backend credentials or bridge are available, return clear actionable error
+            self.send_response(401)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            err_payload = {
+                "error": {
+                    "message": "Authentication required. Your cloud server is active, but needs an upstream AI backend. Set 'DASHSCOPE_API_KEY' in Render Environment Variables (or pass 'Bearer sk-...' in client), or set 'PHONE_BRIDGE_URL'.",
+                    "type": "authentication_error",
+                    "code": "session_expired_or_missing",
+                    "docs": "https://github.com/k4878337-lang/qwen-studio-api"
+                }
+            }
+            self.wfile.write(json.dumps(err_payload, indent=2).encode("utf-8"))
             return
 
         if self.path.startswith("/proxy/"):
@@ -726,8 +757,55 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             record_usage(model or "qwen4-max", p_tokens, c_tokens, client_ip=client_ip, stream=False, duration=duration, status="200 OK")
 
+    def proxy_to_phone_bridge(self, bridge_url, body):
+        target_url = f"{bridge_url}/v1/chat/completions"
+        req = urllib.request.Request(target_url, data=body, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("Authorization", "Bearer sk-qwen-local")
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                self.send_response(resp.status)
+                for h, v in resp.getheaders():
+                    if h.lower() not in ["content-length", "transfer-encoding", "access-control-allow-origin"]:
+                        self.send_header(h, v)
+                self.end_headers()
+                while True:
+                    chunk = resp.read(1024)
+                    if not chunk: break
+                    self.wfile.write(chunk)
+                    self.wfile.flush()
+        except urllib.error.HTTPError as e:
+            self.send_response(e.code)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(e.read())
+        except Exception as e:
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": f"Phone Bridge connection failed: {str(e)}"}).encode("utf-8"))
+
     def proxy_dashscope(self, body, auth_header):
         target_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        
+        # Normalize model names for upstream DashScope
+        try:
+            payload = json.loads(body.decode("utf-8"))
+            m = payload.get("model", "")
+            mapping = {
+                "qwen4-max": "qwen-max",
+                "qwen3.8-max": "qwen-max",
+                "qwen3.7-max": "qwen-max",
+                "qwen3.7-plus": "qwen-plus",
+                "qwen3.8-omni-flash": "qwen-omni-turbo",
+                "qwen3.5-omni-plus": "qwen-vl-plus"
+            }
+            if m in mapping:
+                payload["model"] = mapping[m]
+                body = json.dumps(payload).encode("utf-8")
+        except Exception:
+            pass
+
         req = urllib.request.Request(target_url, data=body, method="POST")
         req.add_header("Authorization", auth_header)
         req.add_header("Content-Type", "application/json")
