@@ -3,3 +3,17 @@
 [16/Nov/2026 21:41:12] "POST /proxy/v1/chat/completions HTTP/1.1" 200 -
 [16/Nov/2026 21:42:49] "POST /proxy/v1/chat/completions HTTP/1.1" 200 -
 [16/Nov/2026 21:44:24] "GET /v1/models HTTP/1.1" 200 -
+[Tunnel] Starting 24/7 public HTTPS tunnel on port 5000 via localhost.run...
+Traceback (most recent call last):
+  File "/data/user/0/com.termux/files/home/projects/qwen-studio-web/server.py", line 935, in <module>
+    httpd = ThreadingHTTPServer(server_address, QwenStudioHandler)
+  File "/data/user/0/com.termux/files/usr/lib/python3.14/socketserver.py", line 457, in __init__
+    self.server_bind()
+    ~~~~~~~~~~~~~~~~^^
+  File "/data/user/0/com.termux/files/usr/lib/python3.14/http/server.py", line 148, in server_bind
+    socketserver.TCPServer.server_bind(self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/data/user/0/com.termux/files/usr/lib/python3.14/socketserver.py", line 478, in server_bind
+    self.socket.bind(self.server_address)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 98] Address already in use

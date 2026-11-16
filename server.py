@@ -193,15 +193,15 @@ def ensure_model_selected(tab_id, target_model):
     clean = "".join(c for c in target_model.lower() if c.isalnum())
     script = f"""(async () => {{
       const cleanTarget = {json.dumps(clean)};
-      const curName = (document.querySelector(".mms-trigger__name")?.innerText || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const curName = (document.querySelector(".mms-trigger__name, .mms-trigger")?.innerText || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       if (curName && (curName.includes(cleanTarget) || cleanTarget.includes(curName))) {{
         return;
       }}
       const trigger = document.querySelector(".mms-trigger");
       if (trigger) trigger.click();
       for (let i = 0; i < 15; i++) {{
-        await new Promise(r => setTimeout(r, 100));
-        if (document.querySelector(".mms-popup")) break;
+        await new Promise(r => setTimeout(r, 80));
+        if (document.querySelector(".mms-popup, .ant-drawer-open")) break;
       }}
       const more = document.querySelector(".mms-more-entry");
       if (more) {{
@@ -211,18 +211,27 @@ def ensure_model_selected(tab_id, target_model):
           if (document.querySelectorAll(".mms-list__item").length >= 6) break;
         }}
       }}
-      const items = Array.from(document.querySelectorAll(".mms-list__item"));
+      const items = Array.from(document.querySelectorAll(".mms-list__item, [class*=mms]"));
       for (const item of items) {{
         const nameEl = item.querySelector(".mms-list__name-text") || item;
         const name = (nameEl.innerText || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (name.includes(cleanTarget) || cleanTarget.includes(name)) {{
-          item.click();
+        if (name && (name.includes(cleanTarget) || cleanTarget.includes(name))) {{
+          const k = Object.keys(item).find(x => x.startsWith('__reactProps'));
+          if (k && item[k] && typeof item[k].onClick === 'function') {{
+            item[k].onClick({{ preventDefault: () => {{}}, stopPropagation: () => {{}} }});
+          }} else {{
+            item.click();
+          }}
           break;
         }}
       }}
+      await new Promise(r => setTimeout(r, 200));
+      const close = document.querySelector('.ant-drawer-close, .ant-modal-close, .ant-drawer-mask');
+      if (close) close.click();
     }})()"""
     bridge_call("eval", {"tab_id": tab_id, "script": script})
-    time.sleep(0.6)
+    time.sleep(0.4)
+    dismiss_popups(tab_id)
 
 def get_or_open_qwen_tab():
     tabs = bridge_call("tabs")
@@ -399,6 +408,7 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
         if "chat/completions" in self.path:
             auth_header = self.headers.get("Authorization", "")
             dashscope_key = os.environ.get("DASHSCOPE_API_KEY", "")
+            groq_key = os.environ.get("GROQ_API_KEY", "")
 
             # Check 1: Upstream Alibaba DashScope API (if key in auth header or environment)
             effective_key = None
@@ -409,6 +419,11 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
 
             if effective_key:
                 self.proxy_dashscope(raw_body, effective_key)
+                return
+
+            # Check 1.5: Upstream Groq Cloud API (if GROQ_API_KEY is set in environment)
+            if groq_key:
+                self.proxy_groq(raw_body, groq_key)
                 return
 
             # Check 2: Route to local Browser Bridge session (when running locally on phone/Termux)
@@ -500,6 +515,7 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
         dismiss_popups(tab_id)
         if model:
             ensure_model_selected(tab_id, model)
+            dismiss_popups(tab_id)
         # Read current answers count
         count_res = bridge_call("eval", {
             "tab_id": tab_id,
@@ -510,52 +526,71 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
         except Exception:
             initial_count = 0
 
-        # Trigger generation via React fiber handleSend
+        # Trigger generation via native setter + React fiber + send button
         s_send = f"""
         (() => {{
           const ta = document.querySelector(".message-input-textarea");
           if (!ta) return "no_ta";
-          const key = Object.keys(ta).find(k => k.startsWith("__reactFiber"));
-          if (!key) return "no_fiber";
-          let cur = ta[key];
-          while (cur) {{
-            if (cur.memoizedProps && typeof cur.memoizedProps.handleSend === "function") {{
-              cur.memoizedProps.handleSend("send", {json.dumps(prompt)});
-              return "ok";
+          try {{
+            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+            nativeSetter.call(ta, {json.dumps(prompt)});
+            ta.dispatchEvent(new Event('input', {{ bubbles: true }}));
+            ta.dispatchEvent(new Event('change', {{ bubbles: true }}));
+          }} catch(e) {{}}
+
+          // 1. Try fiber handleSend
+          try {{
+            const key = Object.keys(ta).find(k => k.startsWith("__reactFiber"));
+            if (key) {{
+              let cur = ta[key];
+              while (cur) {{
+                if (cur.memoizedProps && typeof cur.memoizedProps.handleSend === "function") {{
+                  cur.memoizedProps.handleSend("send", {json.dumps(prompt)}, "enter");
+                  break;
+                }}
+                cur = cur.return;
+              }}
             }}
-            cur = cur.return;
-          }}
-          return "no_handleSend";
+          }} catch(e) {{}}
+
+          // 2. Try send button
+          try {{
+            const btn = document.querySelector('.send-button') || document.querySelector('.message-input-right-button-send button');
+            if (btn) {{
+              const k = Object.keys(btn).find(x => x.startsWith('__reactProps'));
+              if (k && btn[k] && typeof btn[k].onClick === 'function') {{
+                btn[k].onClick({{ preventDefault: () => {{}}, stopPropagation: () => {{}} }});
+              }} else {{
+                btn.click();
+              }}
+            }}
+          }} catch(e) {{}}
+
+          return "ok";
         }})()
         """
-        send_res = bridge_call("eval", {"tab_id": tab_id, "script": s_send})
-        if not send_res or send_res.get("result") != "ok":
-            time.sleep(0.3)
-            send_res = bridge_call("eval", {"tab_id": tab_id, "script": s_send})
+        bridge_call("eval", {"tab_id": tab_id, "script": s_send})
 
-        # If handleSend was not found, fallback to ta input + enter
-        if not send_res or send_res.get("result") != "ok":
-            s_fallback = f"""
-            (() => {{
-              const ta = document.querySelector(".message-input-textarea");
-              if (!ta) return false;
-              const key = Object.keys(ta).find(k => k.startsWith("__reactProps"));
-              if (key && ta[key]?.onChange) {{
-                ta[key].onChange({{ target: {{ value: {json.dumps(prompt)} }} }});
-                if (ta[key].onKeyDown) {{
-                  ta[key].onKeyDown({{
-                    key: "Enter",
-                    shiftKey: false,
-                    preventDefault: () => {{}},
-                    nativeEvent: {{ isComposing: false }}
-                  }});
-                  return true;
-                }}
-              }}
-              return false;
-            }})()
-            """
-            bridge_call("eval", {"tab_id": tab_id, "script": s_fallback})
+        # Retry clicking send button if no new message started yet
+        time.sleep(0.3)
+        s_retry = """
+        (() => {
+          const assts = document.querySelectorAll('.qwen-chat-message-assistant').length;
+          const isGen = !!(document.querySelector('.stop-button:not(.disabled)') || document.querySelector('.response-loading'));
+          if (!isGen) {
+            const btn = document.querySelector('.send-button') || document.querySelector('.message-input-right-button-send button');
+            if (btn) {
+              const k = Object.keys(btn).find(x => x.startsWith('__reactProps'));
+              if (k && btn[k] && typeof btn[k].onClick === 'function') {
+                btn[k].onClick({ preventDefault: () => {}, stopPropagation: () => {} });
+              } else {
+                btn.click();
+              }
+            }
+          }
+        })()
+        """
+        bridge_call("eval", {"tab_id": tab_id, "script": s_retry})
 
         req_id = f"chatcmpl-{uuid.uuid4().hex[:12]}"
 
@@ -588,12 +623,13 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
               reasoning = thinkEl.innerText.trim();
             }}
 
-            const answerEl = target.querySelector(".phase-answer, .response-message-content:not(.phase-thinking)") || 
+            const answerEls = target.querySelectorAll(".phase-answer, .response-message-content:not(.phase-thinking)");
+            const answerEl = answerEls.length > 0 ? answerEls[0] : 
               (target.querySelector(".chat-response-message-right-touch") && !target.querySelector(".phase-answer") ? target.querySelector(".chat-response-message-right-touch") : null);
 
             if (answerEl) {{
               const clone = answerEl.cloneNode(true);
-              clone.querySelectorAll(".qwen-chat-mobile-chat-status-card, .qwen-chat-thinking-tool-status-card-wraper, .message-hoc-container, [class*=thinking-status-card]").forEach(e => e.remove());
+              clone.querySelectorAll(".qwen-chat-mobile-chat-status-card, .qwen-chat-thinking-tool-status-card-wraper, .message-hoc-container, [class*=thinking-status-card], [class*=tool-status], [class*=status-card]").forEach(e => e.remove());
               clone.querySelectorAll("pre").forEach(pre => {{
                 const lang = pre.querySelector(".qwen-markdown-code-header > div")?.innerText || "";
                 pre.querySelectorAll(".line-numbers, .qwen-markdown-code-header-wrapper").forEach(e => e.remove());
@@ -602,6 +638,7 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
                 pre.parentNode.replaceChild(rep, pre);
               }});
               text = clone.innerText.trim();
+              text = text.replace(/Tool\\s+[A-Za-z0-9_]+\\s+does\\s+not\\s+exists?\\.?/gi, "").trim();
             }}
           }}
 
@@ -784,6 +821,58 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"error": f"Phone Bridge connection failed: {str(e)}"}).encode("utf-8"))
+
+    def proxy_groq(self, body, api_key):
+        target_url = "https://api.groq.com/openai/v1/chat/completions"
+        auth_header = f"Bearer {api_key}" if not api_key.startswith("Bearer ") else api_key
+        
+        # Normalize model names for Groq
+        try:
+            payload = json.loads(body.decode("utf-8"))
+            m = payload.get("model", "")
+            mapping = {
+                "qwen4-max": "qwen-2.5-coder-32b",
+                "qwen3.8-max": "qwen-2.5-coder-32b",
+                "qwen3.7-max": "qwen-2.5-coder-32b",
+                "qwen3.7-plus": "llama-3.3-70b-versatile",
+                "qwen3.8-omni-flash": "llama-3.2-11b-vision-preview",
+                "qwen3.5-omni-plus": "llama-3.2-11b-vision-preview"
+            }
+            if m in mapping:
+                payload["model"] = mapping[m]
+            else:
+                payload["model"] = "qwen-2.5-coder-32b"
+            body = json.dumps(payload).encode("utf-8")
+        except Exception:
+            pass
+
+        req = urllib.request.Request(target_url, data=body, method="POST")
+        req.add_header("Authorization", auth_header)
+        req.add_header("Content-Type", "application/json")
+        req.add_header("Accept", "text/event-stream")
+
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                self.send_response(resp.status)
+                for h, v in resp.getheaders():
+                    if h.lower() not in ["content-length", "transfer-encoding", "access-control-allow-origin"]:
+                        self.send_header(h, v)
+                self.end_headers()
+                while True:
+                    chunk = resp.read(1024)
+                    if not chunk: break
+                    self.wfile.write(chunk)
+                    self.wfile.flush()
+        except urllib.error.HTTPError as e:
+            self.send_response(e.code)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(e.read())
+        except Exception as e:
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": f"Groq proxy failed: {str(e)}"}).encode("utf-8"))
 
     def proxy_dashscope(self, body, auth_header):
         target_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
