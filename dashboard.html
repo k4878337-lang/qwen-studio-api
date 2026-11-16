@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qwen Studio - 24/7 OpenAI API Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: rgba(18, 20, 29, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(99, 102, 241, 0.35);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.25);
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.1) 0%, transparent 45%);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 24px 20px 60px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 28px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .logo-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: #fff;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 12px var(--green-glow);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+    }
+
+    .btn:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Connection Card (Base URL & API Key) */
+    .connection-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .endpoint-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .endpoint-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .endpoint-label {
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .endpoint-value-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .endpoint-value {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #38bdf8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+    }
+
+    .copy-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--card-hover-border);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-gradient);
+      opacity: 0.6;
+    }
+
+    .stat-title {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      font-family: var(--mono);
+    }
+
+    .stat-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Models Grid */
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .model-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .model-card:hover {
+      border-color: var(--card-hover-border);
+      box-shadow: 0 6px 24px rgba(99, 102, 241, 0.15);
+    }
+
+    .model-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .model-name {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: #e2e8f0;
+    }
+
+    .model-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      font-weight: 600;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .model-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .model-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .feat-tag {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    .model-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .context-tag {
+      font-size: 11.5px;
+      font-family: var(--mono);
+      color: #38bdf8;
+    }
+
+    /* Setup & Code Integration */
+    .integration-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .code-box {
+      background: #050608;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: #cbd5e1;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-box pre {
+      margin: 0;
+    }
+
+    .copy-code-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-family: var(--font);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-code-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Recent Logs Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    thead th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 14px 18px;
+      color: var(--text-muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    tbody td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .token-badge {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #38bdf8;
+    }
+
+    .badge-ok {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* 24/7 Keep Alive Alert */
+    .keep-alive-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.06) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .keep-alive-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .keep-alive-text h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .keep-alive-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .keep-alive-cmd {
+      margin-top: 10px;
+      background: #000;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #34d399;
+      display: inline-block;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e1b4b;
+      border: 1px solid #6366f1;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">Qwen Studio API Server</div>
+          <div class="brand-sub">
+            <span class="status-badge"><span class="status-dot"></span> 24/7 ONLINE</span>
+            <span>•</span>
+            <span>OpenAI Compatible v1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <a href="/" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Open Chat Studio
+        </a>
+        <button class="btn" onclick="fetchStats()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Connection Box (Base URL & API Key) -->
+    <section class="connection-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          Server Endpoints & Credentials
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">Compatible with NextChat, Open WebUI, Cursor, Python</span>
+      </div>
+
+      <div class="endpoint-grid">
+        <!-- Public 24/7 Base URL -->
+        <div class="endpoint-card" style="border-color: rgba(99, 102, 241, 0.4);">
+          <div class="endpoint-label">
+            <span>🌐 Public 24/7 Base URL (Worldwide)</span>
+            <span style="color: #34d399;">SSL Active 🔒</span>
+          </div>
+          <div class="endpoint-value-box">
+            <span class="endpoint-value" id="publicBaseUrl">Loading tunnel...</span>
+            <button class="copy-btn" onclick="copyText('publicBaseUrl')" title="Copy URL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Localhost Base URL -->
+        <div class="endpoint-card">
+          <div class="endpoint-label">
+            <span>💻 Localhost Base URL</span>
+            <span>Local Device</span>
+          </div>
+          <div class="endpoint-value-box">
+            <span class="endpoint-value" id="localBaseUrl">http://127.0.0.1:5000/v1</span>
+            <button class="copy-btn" onclick="copyText('localBaseUrl')" title="Copy URL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- API Key -->
+        <div class="endpoint-card">
+          <div class="endpoint-label">
+            <span>🔑 API Key (Bearer Token)</span>
+            <span style="color: #a855f7;">Universal</span>
+          </div>
+          <div class="endpoint-value-box">
+            <span class="endpoint-value" id="apiKeyDisplay">sk-qwen-local</span>
+            <button class="copy-btn" onclick="copyText('apiKeyDisplay')" title="Copy API Key">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">
+          <span>Total Requests</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="stat-value" id="statRequests">0</div>
+        <div class="stat-sub">All-time completions served</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">
+          <span>Total Tokens Processed</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="stat-value" id="statTokens">0</div>
+        <div class="stat-sub"><span id="statPromptTokens">0</span> in / <span id="statCompTokens">0</span> out</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">
+          <span>Active Authentic Models</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div class="stat-value" style="color: #a855f7;">6</div>
+        <div class="stat-sub">Qwen-Max, Plus, Omni, Coding</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">
+          <span>Avg Response Time</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-value" id="statAvgDuration">0s</div>
+        <div class="stat-sub">Live bridge streaming latency</div>
+      </div>
+    </section>
+
+    <!-- Available Models Showcase -->
+    <div class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      Authentic Models Catalog (Ready for API Calls)
+    </div>
+
+    <div class="models-grid">
+      <!-- Qwen 4 Max -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen4-max</div>
+          <span class="model-badge">Flagship</span>
+        </div>
+        <p class="model-desc">Most intelligent model. 1M token context, high-order reasoning, deep mathematical proofs, and complex coding.</p>
+        <div class="model-features">
+          <span class="feat-tag">1M Context</span>
+          <span class="feat-tag">Deep Reasoning</span>
+          <span class="feat-tag">Code Expert</span>
+          <span class="feat-tag">Vision</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 8,192</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen4-max')">Copy ID</button>
+        </div>
+      </div>
+
+      <!-- Qwen 3.8 Max -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen3.8-max</div>
+          <span class="model-badge">Logic & Coding</span>
+        </div>
+        <p class="model-desc">Specialized in full-stack architecture, algorithm design, step-by-step logic, and deep problem breakdown.</p>
+        <div class="model-features">
+          <span class="feat-tag">128k Context</span>
+          <span class="feat-tag">Software Arch</span>
+          <span class="feat-tag">Refactoring</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 8,192</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen3.8-max')">Copy ID</button>
+        </div>
+      </div>
+
+      <!-- Qwen 3.7 Plus -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen3.7-plus</div>
+          <span class="model-badge">Balanced & Fast</span>
+        </div>
+        <p class="model-desc">Optimal balance between ultra-fast streaming speed, low token latency, and high comprehension quality.</p>
+        <div class="model-features">
+          <span class="feat-tag">Ultra Fast</span>
+          <span class="feat-tag">General Tasks</span>
+          <span class="feat-tag">Multilingual</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 8,192</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen3.7-plus')">Copy ID</button>
+        </div>
+      </div>
+
+      <!-- Qwen 3.8 Omni Flash -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen3.8-omni-flash</div>
+          <span class="model-badge" style="color: #ec4899; border-color: rgba(236,72,153,0.3); background: rgba(236,72,153,0.1);">Multimodal Omni</span>
+        </div>
+        <p class="model-desc">Realtime multimodal processing supporting text, high-res vision, and audio comprehension with low response latency.</p>
+        <div class="model-features">
+          <span class="feat-tag">Vision OCR</span>
+          <span class="feat-tag">Audio Input</span>
+          <span class="feat-tag">Low Latency</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 4,096</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen3.8-omni-flash')">Copy ID</button>
+        </div>
+      </div>
+
+      <!-- Qwen 3.7 Max -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen3.7-max</div>
+          <span class="model-badge">Analytical</span>
+        </div>
+        <p class="model-desc">Precision-tuned for document synthesis, contract analysis, deep research reports, and verified accuracy.</p>
+        <div class="model-features">
+          <span class="feat-tag">Research</span>
+          <span class="feat-tag">Synthesis</span>
+          <span class="feat-tag">Fact Checked</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 8,192</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen3.7-max')">Copy ID</button>
+        </div>
+      </div>
+
+      <!-- Qwen 3.5 Omni Plus -->
+      <div class="model-card">
+        <div class="model-header">
+          <div class="model-name">qwen3.5-omni-plus</div>
+          <span class="model-badge">Omni Classic</span>
+        </div>
+        <p class="model-desc">Comprehensive cross-modal intelligence for streaming multimodal chat, speech-like dialogues, and diagram reading.</p>
+        <div class="model-features">
+          <span class="feat-tag">Omni Flow</span>
+          <span class="feat-tag">Diagrams</span>
+          <span class="feat-tag">Conversational</span>
+        </div>
+        <div class="model-actions">
+          <span class="context-tag">max_tokens: 4,096</span>
+          <button class="btn" style="padding: 4px 10px; font-size: 11.5px;" onclick="copyModel('qwen3.5-omni-plus')">Copy ID</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Integration Guide -->
+    <div class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      One-Click Setup & Integration Guides
+    </div>
+
+    <section class="integration-panel">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-python')">Python (OpenAI SDK)</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-curl')">cURL (Streaming & JSON)</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-nextchat')">NextChat / WebUI</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-cursor')">Cursor / VS Code</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-node')">Node.js / LangChain</button>
+      </div>
+
+      <!-- Python Tab -->
+      <div id="tab-python" class="tab-content active">
+        <div class="code-box">
+          <button class="copy-code-btn" onclick="copySnippet('python-code')">Copy</button>
+          <pre id="python-code">from openai import OpenAI
+
+# Initialize client with your 24/7 Qwen Studio Server
+client = OpenAI(
+    base_url="<span class="dyn-base-url">http://127.0.0.1:5000/v1</span>",
+    api_key="sk-qwen-local"
+)
+
+# Streaming chat completion with flagship Qwen4-Max
+stream = client.chat.completions.create(
+    model="qwen4-max",
+    messages=[
+        {"role": "user", "content": "Explain quantum computing in 2 paragraphs."}
+    ],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices and chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+print()</pre>
+        </div>
+      </div>
+
+      <!-- cURL Tab -->
+      <div id="tab-curl" class="tab-content">
+        <div class="code-box">
+          <button class="copy-code-btn" onclick="copySnippet('curl-code')">Copy</button>
+          <pre id="curl-code">curl -N -X POST "<span class="dyn-base-url">http://127.0.0.1:5000/v1</span>/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-qwen-local" \
+  -d '{
+    "model": "qwen4-max",
+    "messages": [
+      {"role": "user", "content": "Hello Qwen! Give me 3 creative business ideas."}
+    ],
+    "stream": true
+  }'</pre>
+        </div>
+      </div>
+
+      <!-- NextChat Tab -->
+      <div id="tab-nextchat" class="tab-content">
+        <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 10px; font-size: 13.5px; line-height: 1.7;">
+          <h4 style="color: #fff; margin-bottom: 8px;">NextChat (ChatGPT-Next-Web) Setup:</h4>
+          <ol style="margin-left: 20px; color: #cbd5e1;">
+            <li>Open NextChat settings (Bottom-left gear icon ⚙️).</li>
+            <li>In <b>Model Provider</b>, select <code>OpenAI</code>.</li>
+            <li>In <b>Endpoint (Base URL)</b>, enter: <code style="color: #38bdf8;" class="dyn-base-url">http://127.0.0.1:5000/v1</code></li>
+            <li>In <b>API Key</b>, enter: <code style="color: #a855f7;">sk-qwen-local</code></li>
+            <li>In <b>Custom Models</b>, add: <code>qwen4-max,qwen3.8-max,qwen3.7-plus,qwen3.8-omni-flash</code></li>
+            <li>Done! All chats will now route through your 100% free authentic Qwen Studio server.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Cursor Tab -->
+      <div id="tab-cursor" class="tab-content">
+        <div style="background: rgba(0,0,0,0.3); padding: 18px; border-radius: 10px; font-size: 13.5px; line-height: 1.7;">
+          <h4 style="color: #fff; margin-bottom: 8px;">Cursor IDE / VS Code Continue Setup:</h4>
+          <ol style="margin-left: 20px; color: #cbd5e1;">
+            <li>Open Cursor Settings → <b>Models</b>.</li>
+            <li>Enable <b>OpenAI API Key</b>.</li>
+            <li>Check <b>Override OpenAI Base URL</b> and enter: <code style="color: #38bdf8;" class="dyn-base-url">http://127.0.0.1:5000/v1</code></li>
+            <li>Enter API Key: <code style="color: #a855f7;">sk-qwen-local</code></li>
+            <li>Add Model: <code>qwen4-max</code> or <code>qwen3.8-max</code>.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Node.js Tab -->
+      <div id="tab-node" class="tab-content">
+        <div class="code-box">
+          <button class="copy-code-btn" onclick="copySnippet('node-code')">Copy</button>
+          <pre id="node-code">import OpenAI from "openai";
+
+const openai = new OpenAI({
+  baseURL: "<span class="dyn-base-url">http://127.0.0.1:5000/v1</span>",
+  apiKey: "sk-qwen-local",
+});
+
+const completion = await openai.chat.completions.create({
+  model: "qwen4-max",
+  messages: [{ role: "user", content: "Write a high-performance debounce function in TypeScript." }],
+});
+
+console.log(completion.choices[0].message.content);</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Logs Table -->
+    <div class="section-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Live Request & Token Consumption Logs
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Model</th>
+            <th>Prompt Tokens</th>
+            <th>Comp Tokens</th>
+            <th>Total Tokens</th>
+            <th>Latency</th>
+            <th>Mode</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="logsTableBody">
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No requests recorded yet. Make an API call or chat to see real-time logs!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 24/7 Keep Alive Notice -->
+    <div class="keep-alive-card">
+      <div class="keep-alive-icon">⚡</div>
+      <div class="keep-alive-text">
+        <h4>How to Keep This Server Running 24/7 for Free</h4>
+        <p>Because Android puts inactive apps to sleep, Termux provides <code>termux-wake-lock</code> to keep the CPU running without interruption even when your screen is locked. Also turn off battery optimization for the Termux app in Android Settings.</p>
+        <div class="keep-alive-cmd">termux-wake-lock && ./start_247.sh</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Copied to clipboard!</div>
+
+  <script>
+    let activePublicUrl = "";
+
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Update Stats Counters
+        document.getElementById('statRequests').innerText = data.total_requests.toLocaleString();
+        document.getElementById('statTokens').innerText = data.total_tokens.toLocaleString();
+        document.getElementById('statPromptTokens').innerText = data.total_prompt_tokens.toLocaleString();
+        document.getElementById('statCompTokens').innerText = data.total_completion_tokens.toLocaleString();
+        document.getElementById('statAvgDuration').innerText = data.avg_duration > 0 ? (data.avg_duration + 's') : '< 1s';
+
+        // Update Public Base URL
+        if (data.public_url) {
+          activePublicUrl = data.public_url + '/v1';
+          document.getElementById('publicBaseUrl').innerText = activePublicUrl;
+          document.querySelectorAll('.dyn-base-url').forEach(el => el.innerText = activePublicUrl);
+        } else {
+          document.getElementById('publicBaseUrl').innerText = "Starting tunnel...";
+        }
+
+        // Update Logs Table
+        const tbody = document.getElementById('logsTableBody');
+        if (data.recent_logs && data.recent_logs.length > 0) {
+          tbody.innerHTML = data.recent_logs.map(log => `
+            <tr>
+              <td style="font-family: var(--mono); font-size: 11.5px; color: var(--text-muted);">${log.timestamp}</td>
+              <td><span style="font-family: var(--mono); color: #818cf8; font-weight: 600;">${log.model}</span></td>
+              <td class="token-badge">${log.prompt_tokens}</td>
+              <td class="token-badge">${log.completion_tokens}</td>
+              <td><b style="color: #38bdf8; font-family: var(--mono);">${log.total_tokens}</b></td>
+              <td style="font-family: var(--mono); color: var(--text-muted);">${log.duration}s</td>
+              <td><span style="font-size: 11px; color: var(--text-muted);">${log.stream ? 'SSE Stream' : 'JSON'}</span></td>
+              <td><span class="badge-ok">${log.status}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Stats poll error:', err);
+      }
+    }
+
+    function switchTab(e, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function copyText(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text);
+      showToast('Copied: ' + text);
+    }
+
+    function copyModel(modelName) {
+      navigator.clipboard.writeText(modelName);
+      showToast('Copied model: ' + modelName);
+    }
+
+    function copySnippet(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text);
+      showToast('Code snippet copied to clipboard!');
+    }
+
+    // Initial fetch & recurring poll every 4 seconds
+    fetchStats();
+    setInterval(fetchStats, 4000);
+  </script>
+</body>
+</html>

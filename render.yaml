@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: qwen-studio-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: IS_CLOUD
+        value: "1"
+      - key: PORT
+        value: "10000"

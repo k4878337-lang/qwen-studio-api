@@ -1,0 +1,2 @@
+# Standard library only - zero external heavy wheels required
+requests>=2.31.0

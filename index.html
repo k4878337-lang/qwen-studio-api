@@ -1,0 +1,3016 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Qwen - Official Web Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Markdown & Code Highlight & Math libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+  <style>
+    :root {
+      /* Dark Theme (Official chat.qwen.ai Palette) */
+      --qwen-bg-body: #171717;
+      --qwen-bg-sidebar: #212121;
+      --qwen-bg-surface: #262626;
+      --qwen-bg-surface-hover: #303030;
+      --qwen-bg-input: #262626;
+      --qwen-border: rgba(255, 255, 255, 0.12);
+      --qwen-border-focus: rgba(255, 255, 255, 0.28);
+      
+      --qwen-text-primary: #fafafc;
+      --qwen-text-secondary: #afb1c4;
+      --qwen-text-muted: #717387;
+      
+      --qwen-user-bubble-bg: #293652;
+      --qwen-user-bubble-text: #fafbff;
+      
+      --qwen-brand-primary: #615ced;
+      --qwen-brand-gradient: linear-gradient(135deg, #615ced 0%, #856cf7 100%);
+      --qwen-brand-hover: #504bc9;
+      
+      --qwen-thinking-bg: rgba(97, 92, 237, 0.08);
+      --qwen-thinking-border: rgba(97, 92, 237, 0.22);
+      --qwen-thinking-accent: #a5b4fc;
+      
+      --qwen-code-bg: #1e1e1e;
+      --qwen-code-header: #2d2d2d;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 26px;
+    }
+
+    :root[data-theme="light"] {
+      --qwen-bg-body: #ffffff;
+      --qwen-bg-sidebar: #f7f8fc;
+      --qwen-bg-surface: #f0f2f7;
+      --qwen-bg-surface-hover: #e5e8f0;
+      --qwen-bg-input: #ffffff;
+      --qwen-border: rgba(34, 34, 34, 0.12);
+      --qwen-border-focus: rgba(34, 34, 34, 0.32);
+      
+      --qwen-text-primary: #1d1d1f;
+      --qwen-text-secondary: #57596b;
+      --qwen-text-muted: #8e90a6;
+      
+      --qwen-user-bubble-bg: #ebf5ff;
+      --qwen-user-bubble-text: #1e293b;
+      
+      --qwen-thinking-bg: rgba(97, 92, 237, 0.05);
+      --qwen-thinking-border: rgba(97, 92, 237, 0.18);
+      --qwen-thinking-accent: #4f46e5;
+      
+      --qwen-code-bg: #f8fafc;
+      --qwen-code-header: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--qwen-bg-body);
+      color: var(--qwen-text-primary);
+      display: flex;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* Main Container */
+    .app-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Sidebar - Qwen Design */
+    .sidebar {
+      width: 260px;
+      background-color: var(--qwen-bg-sidebar);
+      border-right: 1px solid var(--qwen-border);
+      display: flex;
+      flex-direction: column;
+      padding: 14px 12px;
+      gap: 12px;
+      flex-shrink: 0;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s ease;
+      z-index: 40;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px 8px 6px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--qwen-text-primary);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-logo svg {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--qwen-text-secondary);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-icon:hover {
+      background: var(--qwen-bg-surface-hover);
+      color: var(--qwen-text-primary);
+    }
+
+    .btn-new-conversation {
+      background: var(--qwen-bg-surface);
+      color: var(--qwen-text-primary);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-pill);
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-new-conversation:hover {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-border-focus);
+    }
+
+    /* History search */
+    .history-search-input {
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      color: var(--qwen-text-primary);
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .history-search-input:focus {
+      border-color: var(--qwen-border-focus);
+    }
+
+    /* Chat History List */
+    .chat-history-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-right: 4px;
+    }
+
+    .history-group-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--qwen-text-muted);
+      padding: 10px 8px 4px 8px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      color: var(--qwen-text-secondary);
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .history-item:hover, .history-item.active {
+      background: var(--qwen-bg-surface);
+      color: var(--qwen-text-primary);
+    }
+
+    .history-item-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .history-item-delete {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--qwen-text-muted);
+      cursor: pointer;
+      padding: 2px;
+      margin-left: 6px;
+    }
+
+    .history-item:hover .history-item-delete {
+      display: block;
+    }
+
+    .history-item-delete:hover {
+      color: #ef4444;
+    }
+
+    /* Sidebar Footer / User card */
+    .sidebar-footer {
+      border-top: 1px solid var(--qwen-border);
+      padding-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--qwen-text-primary);
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--qwen-brand-gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* Main Chat Section */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: var(--qwen-bg-body);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      height: 56px;
+      border-bottom: 1px solid var(--qwen-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: var(--qwen-bg-body);
+      z-index: 10;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    .model-selector-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--qwen-text-primary);
+      transition: all 0.2s;
+    }
+
+    .model-selector-pill:hover {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-border-focus);
+    }
+
+    .status-badge {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Chat Messages Viewport */
+    .chat-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 140px 16px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+
+    .messages-thread {
+      max-width: 820px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Empty / Hero State */
+    .hero-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px 20px 16px;
+      text-align: center;
+      gap: 16px;
+      animation: fadeInMsg 0.4s ease-out;
+    }
+
+    .hero-logo-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: var(--qwen-brand-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(97, 92, 237, 0.35);
+    }
+
+    .hero-logo-box svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    .hero-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--qwen-text-primary);
+    }
+
+    .hero-suggestions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      max-width: 820px;
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .suggestion-card {
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .suggestion-card:hover {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-brand-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .suggestion-card-header {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--qwen-brand-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .suggestion-card-title {
+      font-size: 0.88rem;
+      color: var(--qwen-text-primary);
+      line-height: 1.45;
+    }
+
+    /* Message Item Styling */
+    .message-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      animation: fadeInMsg 0.25s ease-out;
+    }
+
+    @keyframes fadeInMsg {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* User Message */
+    .message-user {
+      align-items: flex-end;
+    }
+
+    .user-bubble {
+      background-color: var(--qwen-user-bubble-bg);
+      color: var(--qwen-user-bubble-text);
+      padding: 11px 18px;
+      border-radius: 20px;
+      border-bottom-right-radius: 6px;
+      max-width: 80%;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .user-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 5px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .message-user:hover .user-actions {
+      opacity: 1;
+    }
+
+    /* Assistant Message */
+    .message-assistant {
+      align-items: flex-start;
+      gap: 12px;
+      display: flex;
+      flex-direction: row;
+    }
+
+    .assistant-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--qwen-brand-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px rgba(97, 92, 237, 0.25);
+    }
+
+    .assistant-avatar svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    .assistant-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-x: hidden;
+      min-width: 0;
+    }
+
+    .assistant-content {
+      color: var(--qwen-text-primary);
+      font-size: 0.98rem;
+      line-height: 1.75;
+      word-break: break-word;
+    }
+
+    /* Thinking / CoT Accordion (Official chat.qwen.ai Design) */
+    .qwen-thinking-box {
+      background: var(--qwen-thinking-bg);
+      border: 1px solid var(--qwen-thinking-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+    }
+
+    .thinking-summary {
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--qwen-thinking-accent);
+      user-select: none;
+    }
+
+    .thinking-title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .thinking-bulb-icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .thinking-live-pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--qwen-brand-primary);
+      box-shadow: 0 0 8px var(--qwen-brand-primary);
+      animation: pulseAnim 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulseAnim {
+      0%, 100% { transform: scale(0.85); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+
+    .thinking-shimmer {
+      background: linear-gradient(90deg, var(--qwen-thinking-accent) 0%, #ffffff 50%, var(--qwen-thinking-accent) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmerText 2s linear infinite;
+    }
+
+    @keyframes shimmerText {
+      to { background-position: 200% center; }
+    }
+
+    .thinking-chevron {
+      transition: transform 0.2s ease;
+      width: 14px;
+      height: 14px;
+    }
+
+    .qwen-thinking-box.expanded .thinking-chevron {
+      transform: rotate(180deg);
+    }
+
+    .thinking-details {
+      display: none;
+      padding: 10px 14px 12px 14px;
+      border-top: 1px solid var(--qwen-thinking-border);
+      font-size: 0.86rem;
+      color: var(--qwen-text-secondary);
+      line-height: 1.6;
+      border-left: 2px solid var(--qwen-brand-primary);
+      margin: 0 10px 10px 10px;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      white-space: pre-wrap;
+      font-family: 'JetBrains Mono', monospace;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .qwen-thinking-box.expanded .thinking-details {
+      display: block;
+    }
+
+    /* Streaming Cursor Effect */
+    .qwen-stream-cursor {
+      display: inline-block;
+      width: 4px;
+      height: 1.1em;
+      background-color: var(--qwen-brand-primary);
+      border-radius: 1px;
+      margin-left: 3px;
+      vertical-align: -0.15em;
+      animation: blinkCursor 0.8s infinite;
+    }
+
+    @keyframes blinkCursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Assistant Message Actions Toolbar */
+    .assistant-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 6px;
+      padding-top: 4px;
+      color: var(--qwen-text-muted);
+    }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: var(--qwen-text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
+    }
+
+    .action-btn:hover {
+      background: var(--qwen-bg-surface-hover);
+      color: var(--qwen-text-primary);
+    }
+
+    .action-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* Markdown Styling */
+    .assistant-content p {
+      margin-bottom: 12px;
+    }
+
+    .assistant-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .assistant-content h1, .assistant-content h2, .assistant-content h3 {
+      color: var(--qwen-text-primary);
+      font-weight: 700;
+      margin: 16px 0 8px 0;
+    }
+
+    .assistant-content ul, .assistant-content ol {
+      margin: 8px 0 12px 24px;
+    }
+
+    .assistant-content li {
+      margin-bottom: 4px;
+    }
+
+    .assistant-content blockquote {
+      border-left: 3px solid var(--qwen-brand-primary);
+      padding-left: 12px;
+      margin: 12px 0;
+      color: var(--qwen-text-secondary);
+      font-style: italic;
+    }
+
+    .assistant-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.9rem;
+    }
+
+    .assistant-content th, .assistant-content td {
+      border: 1px solid var(--qwen-border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .assistant-content th {
+      background: var(--qwen-bg-surface);
+      font-weight: 600;
+    }
+
+    /* Code Blocks */
+    .code-block-wrapper {
+      background: var(--qwen-code-bg);
+      border: 1px solid var(--qwen-border);
+      border-radius: 12px;
+      margin: 14px 0;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .code-block-header {
+      background: var(--qwen-code-header);
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--qwen-text-secondary);
+      border-bottom: 1px solid var(--qwen-border);
+    }
+
+    .code-copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--qwen-text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+
+    .code-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--qwen-text-primary);
+    }
+
+    .code-block-wrapper pre {
+      padding: 14px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    /* Floating Input Dock (chat.qwen.ai Signature) */
+    .input-dock {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 14px 16px 20px 16px;
+      background: linear-gradient(180deg, rgba(23, 23, 23, 0) 0%, var(--qwen-bg-body) 35%);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .input-dock-container {
+      max-width: 820px;
+      margin: 0 auto;
+      pointer-events: auto;
+      background: var(--qwen-bg-input);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-pill);
+      padding: 8px 14px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+
+    .input-dock-container:focus-within {
+      border-color: var(--qwen-border-focus);
+      box-shadow: 0 8px 35px rgba(97, 92, 237, 0.15);
+    }
+
+    /* Attached File Previews Bar */
+    .attachment-preview-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--qwen-border);
+      flex-wrap: wrap;
+    }
+
+    .attachment-preview-bar.active {
+      display: flex;
+    }
+
+    .attachment-chip {
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--qwen-text-primary);
+    }
+
+    .attachment-chip-close {
+      cursor: pointer;
+      color: var(--qwen-text-muted);
+      display: flex;
+    }
+
+    .attachment-chip-close:hover {
+      color: #ef4444;
+    }
+
+    /* Main Input Row: Plus Icon | Textarea | Mic + Send */
+    .input-main-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    /* The Plus Icon Button */
+    .btn-plus-mode {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      color: var(--qwen-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .btn-plus-mode:hover, .btn-plus-mode.active {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-brand-primary);
+      color: var(--qwen-brand-primary);
+      transform: scale(1.05);
+    }
+
+    .btn-plus-mode svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .input-textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--qwen-text-primary);
+      font-family: inherit;
+      font-size: 0.98rem;
+      resize: none;
+      outline: none;
+      min-height: 28px;
+      max-height: 160px;
+      line-height: 1.5;
+      padding: 4px 0;
+    }
+
+    .input-right-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Microphone / Voice Input Button */
+    .btn-voice-mic {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--qwen-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-voice-mic:hover {
+      background: var(--qwen-bg-surface-hover);
+      color: var(--qwen-text-primary);
+    }
+
+    .btn-voice-mic svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .btn-voice-mic.recording {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      animation: pulseMic 1.2s infinite;
+    }
+
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* Circular Send & Stop Button with Spinner Ring */
+    .btn-submit-action {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: var(--qwen-brand-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s, opacity 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-submit-action:disabled {
+      background: var(--qwen-bg-surface-hover);
+      color: var(--qwen-text-muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-submit-action:not(:disabled):hover {
+      background: var(--qwen-brand-hover);
+      transform: scale(1.05);
+    }
+
+    .btn-submit-action svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    /* Generating / Stop State */
+    .btn-submit-action.generating {
+      background: #1f1f23;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-submit-action.generating::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--qwen-brand-primary);
+      animation: spinRing 0.8s linear infinite;
+    }
+
+    @keyframes spinRing {
+      to { transform: rotate(360deg); }
+    }
+
+    .stop-square-icon {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 2px;
+    }
+
+    /* Active Mode Indicator Chips Bar inside Input Dock */
+    .active-modes-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-top: 2px;
+    }
+
+    .mode-indicator-chip {
+      background: rgba(97, 92, 237, 0.12);
+      border: 1px solid var(--qwen-thinking-border);
+      border-radius: var(--radius-pill);
+      padding: 3px 10px;
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: #c7d2fe;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .mode-indicator-chip svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+    }
+
+    /* Mode Selector Drawer (Official Qwen Plus Menu) */
+    .mode-selector-drawer {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 0;
+      width: 320px;
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: 20px;
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      z-index: 50;
+      animation: slideUpDrawer 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mode-selector-drawer.open {
+      display: flex;
+    }
+
+    @keyframes slideUpDrawer {
+      from { opacity: 0; transform: translateY(10px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .drawer-section-title {
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--qwen-text-muted);
+    }
+
+    /* Upload 4 Buttons Row */
+    .drawer-upload-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .drawer-upload-btn {
+      flex: 1;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--qwen-bg-body);
+      border: 1px solid var(--qwen-border);
+      color: var(--qwen-text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .drawer-upload-btn:hover {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-brand-primary);
+      color: var(--qwen-brand-primary);
+    }
+
+    .drawer-upload-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Thinking Mode Picker Row */
+    .drawer-thinking-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--qwen-bg-body);
+      border: 1px solid var(--qwen-border);
+      border-radius: 12px;
+      padding: 9px 12px;
+    }
+
+    .drawer-thinking-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--qwen-text-primary);
+    }
+
+    .drawer-thinking-label svg {
+      width: 16px;
+      height: 16px;
+      fill: var(--qwen-brand-primary);
+    }
+
+    .drawer-thinking-select {
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      color: var(--qwen-text-primary);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Tools Header Row with Master Switch */
+    .drawer-tools-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      padding: 4px 2px;
+    }
+
+    .drawer-tools-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--qwen-text-primary);
+    }
+
+    .drawer-tools-header-left svg {
+      width: 16px;
+      height: 16px;
+      fill: var(--qwen-brand-primary);
+    }
+
+    /* Master Switch Toggle */
+    .qwen-toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .qwen-toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .qwen-toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--qwen-bg-surface-hover);
+      border: 1px solid var(--qwen-border);
+      transition: .2s;
+      border-radius: 20px;
+    }
+
+    .qwen-toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    .qwen-toggle-switch input:checked + .qwen-toggle-slider {
+      background-color: var(--qwen-brand-primary);
+      border-color: var(--qwen-brand-primary);
+    }
+
+    .qwen-toggle-switch input:checked + .qwen-toggle-slider:before {
+      transform: translateX(16px);
+    }
+
+    .tool-badge-close {
+      margin-left: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      opacity: 0.7;
+    }
+    .tool-badge-close:hover {
+      opacity: 1;
+      color: #ef4444;
+    }
+
+    /* Tools List Grid */
+    .drawer-tools-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-height: 210px;
+      overflow-y: auto;
+      transition: opacity 0.2s;
+    }
+
+    .drawer-tool-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: var(--qwen-bg-body);
+      border: 1px solid var(--qwen-border);
+      color: var(--qwen-text-secondary);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .drawer-tool-item:hover, .drawer-tool-item.active {
+      background: var(--qwen-bg-surface-hover);
+      border-color: var(--qwen-brand-primary);
+      color: var(--qwen-text-primary);
+    }
+
+    .drawer-tool-item svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Artifacts Slide-Over Panel */
+    .artifacts-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 480px;
+      max-width: 100%;
+      background: var(--qwen-bg-surface);
+      border-left: 1px solid var(--qwen-border);
+      display: none;
+      flex-direction: column;
+      z-index: 45;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
+      animation: slideLeftPanel 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .artifacts-panel.open {
+      display: flex;
+    }
+
+    @keyframes slideLeftPanel {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    .artifacts-header {
+      height: 56px;
+      border-bottom: 1px solid var(--qwen-border);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .artifacts-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .artifact-tab-btn {
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--qwen-text-secondary);
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .artifact-tab-btn.active {
+      background: var(--qwen-bg-body);
+      border-color: var(--qwen-border);
+      color: var(--qwen-text-primary);
+      font-weight: 600;
+    }
+
+    .artifacts-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .artifact-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    .artifact-code-pre {
+      padding: 16px;
+      overflow: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      height: 100%;
+      color: var(--qwen-text-primary);
+    }
+
+    /* Model Dropdown Menu */
+    .dropdown-menu {
+      position: absolute;
+      top: 60px;
+      left: 16px;
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      z-index: 50;
+      min-width: 280px;
+    }
+
+    .dropdown-menu.show {
+      display: flex;
+    }
+
+    .dropdown-item {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.15s;
+    }
+
+    .dropdown-item:hover, .dropdown-item.active {
+      background: var(--qwen-bg-surface-hover);
+    }
+
+    .dropdown-item-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--qwen-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dropdown-item-desc {
+      font-size: 0.76rem;
+      color: var(--qwen-text-muted);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      color: var(--qwen-text-primary);
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 0.86rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 200;
+      animation: fadeInToast 0.2s ease-out;
+    }
+
+    @keyframes fadeInToast {
+      from { opacity: 0; transform: translate(-50%, -10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: var(--qwen-bg-surface);
+      border: 1px solid var(--qwen-border);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 0.82rem;
+      color: var(--qwen-text-secondary);
+      font-weight: 500;
+    }
+
+    .form-input, .form-select {
+      background: var(--qwen-bg-input);
+      border: 1px solid var(--qwen-border);
+      border-radius: var(--radius-sm);
+      color: var(--qwen-text-primary);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 35;
+        display: none;
+      }
+      .sidebar-backdrop.show {
+        display: block;
+      }
+      .user-bubble {
+        max-width: 90%;
+      }
+      .mode-selector-drawer {
+        width: calc(100vw - 32px);
+      }
+      .artifacts-panel {
+        width: 100vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hidden File Input for Image/Document Uploads -->
+  <input type="file" id="hiddenFileInput" style="display:none;" multiple>
+
+  <!-- Toast Notification Box -->
+  <div class="toast-container" id="toastBox">
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <!-- SVG Sprite extracted directly from chat.qwen.ai -->
+  <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
+    <!-- Official Plus / Add Icon -->
+    <symbol id="appicon-add" viewBox="0 0 1024 1024">
+      <path d="M554.666667 128v341.333333h341.333333v85.333334h-341.333333v341.333333h-85.333334v-341.333333H128v-85.333334h341.333333V128h85.333334z"/>
+    </symbol>
+
+    <!-- Official Microphone / Voice Icon -->
+    <symbol id="appicon-mic" viewBox="0 0 1024 1024">
+      <path d="M298.666667 554.666667V298.666667c0-58.88 20.821333-109.226667 62.464-150.869334C402.816 106.154667 453.12 85.333333 512 85.333333c58.88 0 109.226667 20.821333 150.826667 62.464C704.512 189.482667 725.333333 239.786667 725.333333 298.666667v256c0 58.88-20.821333 109.226667-62.506666 150.826666C621.226667 747.178667 570.922667 768 512 768c-58.88 0-109.226667-20.821333-150.869333-62.506667C319.488 663.893333 298.666667 613.589333 298.666667 554.666667z m85.333333 0c0 35.328 12.501333 65.536 37.504 90.496A123.306667 123.306667 0 0 0 512 682.666667a123.306667 123.306667 0 0 0 90.496-37.504A123.306667 123.306667 0 0 0 640 554.666667V298.666667a123.306667 123.306667 0 0 0-37.504-90.496A123.306667 123.306667 0 0 0 512 170.666667a123.306667 123.306667 0 0 0-90.496 37.504A123.306667 123.306667 0 0 0 384 298.666667v256z m277.461333 353.792A379.861333 379.861333 0 0 1 512 938.666667a379.861333 379.861333 0 0 1-149.504-30.208 380.928 380.928 0 0 1-122.026667-82.261334 380.885333 380.885333 0 0 1-82.261333-122.026666l78.592-33.28c15.104 35.754667 36.437333 67.413333 64 94.976a296.405333 296.405333 0 0 0 94.976 64c36.949333 15.658667 75.690667 23.466667 116.224 23.466666 40.533333 0 79.274667-7.808 116.224-23.466666a296.362667 296.362667 0 0 0 94.976-64 296.32 296.32 0 0 0 64-94.933334l78.592 33.237334a380.928 380.928 0 0 1-82.261333 122.026666 380.928 380.928 0 0 1-122.026667 82.261334z"/>
+    </symbol>
+
+    <!-- Official Send Upward Arrow Icon -->
+    <symbol id="qwpcicon-sendChat" viewBox="0 0 1024 1024">
+      <path d="M554.24 85.76l307.2 307.2-84.48 84.48-205.184-205.248V896H452.288V272.192L247.04 477.44 162.56 392.96l307.2-307.2a59.712 59.712 0 0 1 84.48 0z"/>
+    </symbol>
+
+    <!-- Official Thinking Sparkle Brain Icon -->
+    <symbol id="appicon-AIThink" viewBox="0 0 1024 1024">
+      <path d="M891.664229 61.941226a100.130907 100.130907 0 0 0 70.394545 70.394545l51.281359 13.908255a14.292226 14.292226 0 0 1 0 27.645858L962.058774 187.798139a100.130907 100.130907 0 0 0-70.394545 70.394544l-13.908255 51.281359a14.292226 14.292226 0 0 1-27.645858 0L836.201861 258.192683a100.130907 100.130907 0 0 0-70.394544-70.394544l-51.324023-13.908255a14.292226 14.292226 0 0 1 0-27.645858L765.807317 132.335771a100.130907 100.130907 0 0 0 70.394544-70.394545l13.908255-51.281359a14.292226 14.292226 0 0 1 27.645858 0L891.664229 61.941226zM42.66336 511.741033c0.213317-39.250291 18.985195-63.952377 56.230309-74.063593l123.297111-33.490738c73.039673-19.838463 119.457409-66.213535 139.253208-139.253208l33.490738-123.297111c10.239206-37.71441 35.111945-56.443626 74.66088-56.230309 39.250291 0.213317 63.952377 18.942532 74.063594 56.230309l33.490738 123.297111c19.838463 73.039673 66.213535 119.457409 139.210544 139.253208l123.339775 33.490738c37.71441 10.239206 56.443626 35.154609 56.230308 74.66088-0.213317 39.250291-18.985195 63.952377-56.230308 74.063594l-123.297112 33.490738c-73.039673 19.838463-119.457409 66.213535-139.253207 139.210544l-33.490738 123.339775c-10.239206 37.71441-35.111945 56.443626-74.660881 56.230308-39.250291-0.213317-63.952377-18.942532-74.063593-56.230308l-33.490738-123.297111c-19.838463-73.039673-66.213535-119.457409-139.253208-139.253208l-123.297111-33.490738c-37.71441-10.239206-56.443626-35.154609-56.230309-74.660881z"/>
+    </symbol>
+
+    <!-- Official Camera Icon -->
+    <symbol id="appicon-camera" viewBox="0 0 1024 1024">
+      <path d="M853.333333 234.666667c71.125333 0 106.666667 35.541333 106.666667 106.666666v469.333334c0 71.125333-35.541333 106.666667-106.666667 106.666666H170.666667c-29.44 0-54.613333-10.410667-75.434667-31.232A102.784 102.784 0 0 1 64 810.666667V341.333333c0-29.44 10.410667-54.613333 31.232-75.434666A102.784 102.784 0 0 1 170.666667 234.666667h105.173333l53.674667-80.512C350.592 122.496 380.16 106.666667 418.261333 106.666667h187.477334c38.058667 0 67.669333 15.829333 88.746666 47.488L748.16 234.666667H853.333333zM512 362.666667c53.034667 0 98.261333 18.773333 135.765333 56.234666 37.504 37.504 56.234667 82.773333 56.234667 135.765334 0 53.034667-18.773333 98.261333-56.234667 135.765333-37.504 37.504-82.773333 56.234667-135.765333 56.234667-53.034667 0-98.261333-18.773333-135.765333-56.234667C338.730667 652.928 320 607.658667 320 554.666667c0-53.034667 18.773333-98.261333 56.234667-135.765334C413.738667 381.397333 459.008 362.666667 512 362.666667z"/>
+    </symbol>
+
+    <!-- Official Picture / Image Icon -->
+    <symbol id="appicon-picture" viewBox="0 0 1024 1024">
+      <path d="M832 128c71.125333 0 106.666667 35.541333 106.666667 106.666667v554.666666c0 71.125333-35.541333 106.666667-106.666667 106.666667h-640C120.874667 896 85.333333 860.458667 85.333333 789.333333v-554.666666C85.333333 163.541333 120.874667 128 192 128h640zM170.666667 234.666667v302.336l92.672-92.672A164.437333 164.437333 0 0 1 384 394.368c47.146667 0 87.338667 16.64 120.661333 49.962667l348.501334 348.501333A37.248 37.248 0 0 0 853.333333 789.333333v-554.666666c0-14.208-7.125333-21.333333-21.333333-21.333334h-640c-14.208 0-21.333333 7.125333-21.333333 21.333334z m469.333333 128a64 64 0 1 1 128 0 64 64 0 0 1-128 0z"/>
+    </symbol>
+
+    <!-- Official Document File Icon -->
+    <symbol id="appicon-file" viewBox="0 0 1024 1024">
+      <path d="M234.666667 85.333333h400.170666c29.44 0 54.613333 10.410667 75.392 31.232l154.538667 154.538667c20.821333 20.821333 31.232 45.952 31.232 75.392V832c0 71.125333-35.541333 106.666667-106.666667 106.666667h-554.666666C163.541333 938.666667 128 903.125333 128 832v-640C128 120.874667 163.541333 85.333333 234.666667 85.333333z m554.666666 768c14.208 0 21.333333-7.125333 21.333334-21.333333V346.496a20.565333 20.565333 0 0 0-6.229334-15.061333l-154.538666-154.538667A20.565333 20.565333 0 0 0 634.88 170.666667H234.666667c-14.208 0-21.333333 7.125333-21.333334 21.333333v640c0 14.208 7.125333 21.333333 21.333334 21.333333h554.666666zM341.333333 341.333333h213.333334v85.333334H341.333333V341.333333z m0 170.666667h341.333334v85.333333H341.333333v-85.333333z"/>
+    </symbol>
+
+    <!-- Official Web Search Globe Icon -->
+    <symbol id="appicon-online" viewBox="0 0 1024 1024">
+      <path d="M85.333333 512C85.333333 276.352 276.352 85.333333 512 85.333333s426.666667 191.018667 426.666667 426.666667-191.018667 426.666667-426.666667 426.666667S85.333333 747.648 85.333333 512z m578.389334 305.834667A341.632 341.632 0 0 0 850.688 554.666667H724.48c-4.010667 94.037333-21.632 176.085333-52.778667 246.186666-2.56 5.845333-5.248 11.52-7.936 16.981334zM384.981333 554.666667c3.84 81.664 18.944 152.192 45.312 211.541333 14.208 31.872 29.952 55.552 47.274667 70.954667 12.074667 10.794667 23.552 16.170667 34.432 16.170666s22.357333-5.376 34.432-16.170666c17.322667-15.402667 33.066667-39.082667 47.274667-70.954667 26.368-59.349333 41.472-129.877333 45.312-211.541333H384.981333z"/>
+    </symbol>
+
+    <!-- Official Web Dev / Code Icon -->
+    <symbol id="appicon-code" viewBox="0 0 1024 1024">
+      <path d="M128 789.333333v-554.666666C128 163.541333 163.541333 128 234.666667 128h554.666666c71.125333 0 106.666667 35.541333 106.666667 106.666667v554.666666c0 71.125333-35.541333 106.666667-106.666667 106.666667h-554.666666C163.541333 896 128 860.458667 128 789.333333zM375.466667 413.866667l-98.133334 98.133333 98.133334 98.133333 60.330666-60.330666-37.802666-37.802667 37.802666-37.802667-60.330666-60.330666z m273.066666 0l-60.330666 60.330666 37.802666 37.802667-37.802666 37.802667 60.330666 60.330666 98.133334-98.133333-98.133334-98.133333z"/>
+    </symbol>
+
+    <!-- Official Artifacts / Cube Icon -->
+    <symbol id="appicon-cube" viewBox="0 0 1024 1024">
+      <path d="M561.92 84.821333l298.666667 158.122667c37.845333 20.053333 56.746667 51.456 56.746666 94.293333v349.568c0 42.794667-18.901333 74.24-56.746666 94.293334l-298.666667 158.08c-33.28 17.621333-66.56 17.621333-99.84 0l-298.666667-158.122667c-37.845333-20.053333-56.746667-51.456-56.746666-94.293333V337.237333c0-42.794667 18.901333-74.24 56.746666-94.293333l298.666667-158.08c33.28-17.621333 66.56-17.621333 99.84 0zM192 373.290667v313.514666c0 8.533333 3.797333 14.848 11.349333 18.858667l265.984 140.8v-310.784c-3.84-1.706667-7.68-3.669333-11.434666-5.888L192 373.333333z m362.666667 473.173333l265.984-140.8a19.925333 19.925333 0 0 0 11.349333-18.858667V373.290667l-265.898667 156.501333a110.08 110.08 0 0 1-11.434666 5.888v310.784z m232.533333-545.834667l-265.216-140.373333a20.181333 20.181333 0 0 0-19.968 0L236.8 300.586667l264.405333 155.648c7.210667 4.266667 14.421333 4.266667 21.632 0l264.362667-155.648z"/>
+    </symbol>
+
+    <!-- Official Deep Research Cap Icon -->
+    <symbol id="appicon-graduationCap" viewBox="0 0 1024 1024">
+      <path d="M512 64l448 234.666667v42.666666L512 576 64 341.333333v-42.666666l448-234.666667zM155.904 341.333333L512 527.829333l356.053333-186.453333L512 154.752 155.904 341.333333zM256 490.069333l216.405333 113.28a85.333333 85.333333 0 0 0 79.189334 0L768 490.069333v272.042667c-35.029333 25.642667-121.813333 77.226667-252.373333 77.226667s-217.344-51.584-252.373334-77.226667V490.069333z"/>
+    </symbol>
+
+    <!-- Official AI Image Icon -->
+    <symbol id="appicon-aiPicture" viewBox="0 0 1024 1024">
+      <path d="M671.914667 280.490667a14.293333 14.293333 0 0 1 0-27.648L723.2 238.933333a100.138667 100.138667 0 0 0 70.4-70.4l13.909333-51.285333a14.293333 14.293333 0 0 1 27.648 0L849.066667 168.533333a100.138667 100.138667 0 0 0 70.4 70.4l51.328 13.909334a14.293333 14.293333 0 0 1 0 27.648L919.466667 294.4a100.138667 100.138667 0 0 0-70.4 70.4l-13.909334 51.285333a14.293333 14.293333 0 0 1-27.648 0L793.6 364.8a100.138667 100.138667 0 0 0-70.4-70.4l-51.285333-13.909333zM576 213.333333h-384c-14.208 0-21.333333 7.125333-21.333333 21.333334v302.336l92.672-92.672A164.437333 164.437333 0 0 1 384 394.368c47.146667 0 87.338667 16.64 120.661333 49.962667l348.501334 348.501333A36.821333 36.821333 0 0 0 853.333333 789.333333V512h85.333334v277.333333c0 71.125333-35.541333 106.666667-106.666667 106.666667h-640C120.874667 896 85.333333 860.458667 85.333333 789.333333v-554.666666C85.333333 163.541333 120.874667 128 192 128h384v85.333333z"/>
+    </symbol>
+
+    <!-- Official Close Icon -->
+    <symbol id="appicon-close2" viewBox="0 0 1024 1024">
+      <path d="M695.168 268.416l60.330667 60.330667-183.168 183.168 183.168 183.168-60.330667 60.330666L512 572.245333l-183.168 183.168-60.330667-60.330666 183.168-183.168-183.168-183.168 60.330667-60.330667L512 451.584l183.168-183.168z"/>
+    </symbol>
+
+    <!-- Official Slides Icon -->
+    <symbol id="appicon-PPT" viewBox="0 0 1024 1024">
+      <path d="M116.565333 159.232A102.784 102.784 0 0 1 192 128h640c29.44 0 54.613333 10.410667 75.434667 31.232S938.666667 205.226667 938.666667 234.666667v426.666666c0 29.44-10.410667 54.613333-31.232 75.434667A102.826667 102.826667 0 0 1 832 768H597.333333l114.944 153.258667a10.666667 10.666667 0 0 1-8.533333 17.066666h-80a10.666667 10.666667 0 0 1-8.533333-4.266666L512 796.458667l-103.253333 137.6a10.666667 10.666667 0 0 1-8.533334 4.266666H320.298667a10.666667 10.666667 0 0 1-8.533334-17.066666L426.666667 768H192c-29.44 0-54.613333-10.410667-75.434667-31.232A102.784 102.784 0 0 1 85.333333 661.333333v-426.666666c0-29.44 10.410667-54.613333 31.232-75.434667zM832 682.666667c14.208 0 21.333333-7.125333 21.333333-21.333334v-426.666666c0-14.208-7.125333-21.333333-21.333333-21.333334h-640c-14.208 0-21.333333 7.125333-21.333333 21.333334v426.666666c0 14.208 7.125333 21.333333 21.333333 21.333334h640zM384 405.333333h256v85.333334H384v-85.333334z"/>
+    </symbol>
+
+    <!-- Official Travel Airplane Icon -->
+    <symbol id="appicon-airplane" viewBox="0 0 1024 1024">
+      <path d="M589.525333 308.906667a64 64 0 0 1-67.114666 14.890666l-293.546667-106.794666-41.130667 41.130666L398.933333 469.333333a64 64 0 0 1 0 90.496l-84.309333 84.266667a64 64 0 0 1-45.226667 18.773333H170.026667L356.266667 849.066667V749.653333c0-16.981333 6.741333-33.237333 18.773333-45.226666l84.266667-84.266667a64 64 0 0 1 90.453333 0l211.2 211.2 41.173333-41.173333-106.794666-293.546667a64 64 0 0 1 14.933333-67.114667l101.12-101.162666a42.666667 42.666667 0 0 0 12.544-30.165334V237.866667a42.666667 42.666667 0 0 0-42.666667-42.666667h-60.373333a42.666667 42.666667 0 0 0-30.165333 12.501333L589.525333 308.906667z m190.634667 171.349333l106.752 293.632a64 64 0 0 1-14.933333 67.114667l-65.792 65.792a64 64 0 0 1-90.496 0l-211.2-211.2-62.933334 62.976v90.453333c0 76.032-91.904 114.133333-145.664 60.373333L109.696 723.2c-53.76-53.76-15.658667-145.664 60.330667-145.664h90.538666l62.933334-62.933333-211.2-211.2a64 64 0 0 1 0-90.496l65.792-65.834667a64 64 0 0 1 67.114666-14.933333L538.88 238.933333l91.52-91.562666a128 128 0 0 1 90.496-37.461334h60.373333a128 128 0 0 1 128 128V298.24a128 128 0 0 1-37.504 90.453333l-91.562666 91.562667z"/>
+    </symbol>
+
+    <!-- Official Learn Book Icon -->
+    <symbol id="appicon-book" viewBox="0 0 1024 1024">
+      <path d="M344.661333 149.333333c66.816 0 121.344 25.514667 163.669334 76.501334 40.32-50.986667 95.104-76.501333 164.266666-76.501334H832c29.44 0 54.613333 10.410667 75.434667 31.232S938.666667 226.56 938.666667 256v490.666667c0 29.44-10.410667 54.613333-31.232 75.434666A102.826667 102.826667 0 0 1 832 853.333333h-210.304c-16.213333 0-29.226667 6.485333-38.997333 19.498667-17.664 23.552-41.216 35.370667-70.698667 35.370667-29.44 0-53.034667-11.818667-70.698667-35.370667A46.336 46.336 0 0 0 402.304 853.333333H192c-29.44 0-54.613333-10.410667-75.434667-31.232A102.784 102.784 0 0 1 85.333333 746.666667V256c0-29.44 10.410667-54.613333 31.232-75.434667A102.784 102.784 0 0 1 192 149.333333h152.661333z m124.672 384V313.6l-24.746666-30.890667C418.986667 250.709333 385.706667 234.666667 344.661333 234.666667H192c-14.208 0-21.333333 7.125333-21.333333 21.333333v490.666667c0 5.888 2.090667 10.922667 6.229333 15.104A20.565333 20.565333 0 0 0 192 768h210.304c44.672 0 80.426667 17.877333 107.264 53.632 0.597333 0.853333 1.408 1.237333 2.432 1.237333s1.834667-0.426667 2.432-1.237333C541.269333 785.92 577.024 768 621.696 768H832c14.208 0 21.333333-7.125333 21.333333-21.333333V256c0-14.208-7.125333-21.333333-21.333333-21.333333h-159.36c-48.341333 0-84.906667 20.736-109.781333 62.165333l-8.192 13.653333V533.333333h-85.333334z"/>
+    </symbol>
+
+    <!-- Official AI Video Icon -->
+    <symbol id="appicon-aiVideo" viewBox="0 0 1024 1024">
+      <path d="M671.914667 259.157333a14.293333 14.293333 0 0 1 0-27.648L723.2 217.6a100.138667 100.138667 0 0 0 70.4-70.4l13.909333-51.285333a14.293333 14.293333 0 0 1 27.648 0L849.066667 147.2a100.138667 100.138667 0 0 0 70.4 70.4l51.328 13.909333a14.293333 14.293333 0 0 1 0 27.648L919.466667 273.066667a100.138667 100.138667 0 0 0-70.4 70.4l-13.909334 51.285333a14.293333 14.293333 0 0 1-27.648 0L793.6 343.466667a100.138667 100.138667 0 0 0-70.4-70.4l-51.285333-13.909334zM170.666667 234.837333v554.666667c0 14.250667 7.125333 21.333333 21.333333 21.333333h640c14.208 0 21.333333-7.082667 21.333333-21.333333v-298.666667h85.333334v298.666667c0 71.168-35.541333 106.666667-106.666667 106.666667h-640c-71.125333 0-106.666667-35.498667-106.666667-106.666667v-554.666667c0-71.082667 35.541333-106.666667 106.666667-106.666666h384v85.333333h-384c-14.208 0-21.333333 7.168-21.333333 21.333333z m292.565333 407.68c-27.733333 0-50.261333-22.485333-50.261333-50.218666v-155.178667c1.493333-14.762667 1.493333-14.762667 8.448-27.861333a50.218667 50.218667 0 0 1 69.674666-13.952l116.394667 77.610666a50.218667 50.218667 0 0 1 0 83.584l-116.394667 77.610667c-13.098667 6.954667-13.098667 6.954667-27.861333 8.405333z"/>
+    </symbol>
+
+    <!-- Official AI Agent / Tools Icon -->
+    <symbol id="appicon-aiAgent" viewBox="0 0 1024 1024">
+      <path d="M390.4 290.133333a100.266667 100.266667 0 1 0-200.533333 0.042667 100.266667 100.266667 0 0 0 200.533333-0.042667z m81.066667 0a181.333333 181.333333 0 1 1-362.666667 0 181.333333 181.333333 0 0 1 362.666667 0zM390.4 733.866667a100.266667 100.266667 0 1 0-200.533333 0.042666 100.266667 100.266667 0 0 0 200.533333-0.042666z m81.066667 0a181.333333 181.333333 0 1 1-362.666667 0 181.333333 181.333333 0 0 1 362.666667 0zM834.133333 290.133333a100.266667 100.266667 0 1 0-200.533333 0.042667 100.266667 100.266667 0 0 0 200.533333-0.042667z m81.066667 0a181.333333 181.333333 0 1 1-362.666667 0 181.333333 181.333333 0 0 1 362.666667 0zM834.133333 733.866667a100.266667 100.266667 0 1 0-200.533333 0.042666 100.266667 100.266667 0 0 0 200.533333-0.042666z m81.066667 0a181.333333 181.333333 0 1 1-362.666667 0 181.333333 181.333333 0 0 1 362.666667 0z"/>
+    </symbol>
+  </svg>
+
+  <div class="app-layout">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand-logo">
+          <!-- Official Qwen Polygon Facet SVG Emblem -->
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 3L35 11.66V28.34L20 37L5 28.34V11.66L20 3Z" fill="url(#qwen-grad)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+            <path d="M20 10L28 15V25L20 30L12 25V15L20 10Z" fill="white" fill-opacity="0.9"/>
+            <defs>
+              <linearGradient id="qwen-grad" x1="5" y1="3" x2="35" y2="37" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#615CED"/>
+                <stop offset="1" stop-color="#9E7AFF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>Qwen</span>
+        </a>
+        <button class="btn-icon" id="btnCloseSidebar" title="Close sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <button class="btn-new-conversation" id="btnNewChat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New Chat</span>
+      </button>
+
+      <input type="text" class="history-search-input" id="searchHistory" placeholder="Search chats...">
+
+      <div class="chat-history-container" id="chatHistoryContainer">
+        <div class="history-group-title">Recent Conversations</div>
+        <div id="historyList"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="user-avatar" id="userAvatarText">Q</div>
+          <span id="userNameLabel">QwenUser5380</span>
+        </div>
+        <button class="btn-icon" id="btnOpenSettings" title="Settings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Section -->
+    <main class="chat-main">
+      <!-- Navbar -->
+      <header class="navbar">
+        <div class="navbar-left">
+          <button class="btn-icon" id="btnToggleSidebar" title="Toggle Sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
+          </button>
+          
+          <div class="model-selector-pill" id="btnModelPicker">
+            <span class="status-badge"></span>
+            <span id="currentModelLabel">Qwen4-Max</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+
+          <!-- Dropdown Model Picker -->
+          <div class="dropdown-menu" id="modelDropdown">
+            <div class="dropdown-item active" data-model="qwen4-max">
+              <div class="dropdown-item-name">Qwen4-Max <span style="font-size: 0.7rem; color: var(--qwen-brand-primary);">Flagship</span></div>
+              <div class="dropdown-item-desc">Latest flagship model delivering state-of-the-art performance & deep reasoning</div>
+            </div>
+            <div class="dropdown-item" data-model="qwen3.8-max">
+              <div class="dropdown-item-name">Qwen3.8-Max <span style="font-size: 0.7rem; color: #8b5cf6;">High Reasoning</span></div>
+              <div class="dropdown-item-desc">Flagship of Qwen3.8 model delivering state-of-the-art performance</div>
+            </div>
+            <div class="dropdown-item" data-model="qwen3.7-plus">
+              <div class="dropdown-item-name">Qwen3.7-Plus <span style="font-size: 0.7rem; color: #10b981;">Balanced</span></div>
+              <div class="dropdown-item-desc">High-performance model supporting text and multimodal tasks</div>
+            </div>
+            <div class="dropdown-item" data-model="qwen3.8-omni-flash">
+              <div class="dropdown-item-name">Qwen3.8-Omni-Flash <span style="font-size: 0.7rem; color: #f59e0b;">Omni/Fast</span></div>
+              <div class="dropdown-item-desc">Native multimodal model supporting text, images, audio, and audiovisual input</div>
+            </div>
+            <div class="dropdown-item" data-model="qwen3.7-max">
+              <div class="dropdown-item-name">Qwen3.7-Max</div>
+              <div class="dropdown-item-desc">Flagship Qwen3.7 text-only model for deep logic & coding</div>
+            </div>
+            <div class="dropdown-item" data-model="qwen3.5-omni-plus">
+              <div class="dropdown-item-name">Qwen3.5-Omni-Plus</div>
+              <div class="dropdown-item-desc">Powerful native multimodal model in the Qwen3.5 series</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <!-- API & Usage Dashboard Link -->
+          <a href="/dashboard" target="_blank" class="btn-icon" style="text-decoration:none; display:flex; align-items:center; gap:6px; padding:0 10px; border-radius:8px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#818cf8; font-size:12px; font-weight:600; width:auto; height:32px;" title="Open 24/7 API & Token Usage Dashboard">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span>API & Tokens</span>
+          </a>
+
+          <!-- Toggle Artifacts Panel -->
+          <button class="btn-icon" id="btnToggleArtifacts" title="Artifacts / Web Dev Sandbox">
+            <svg width="19" height="19"><use xlink:href="#appicon-cube"/></svg>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button class="btn-icon" id="btnToggleTheme" title="Switch Theme">
+            <svg id="themeIconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg id="themeIconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+          
+          <button class="btn-icon" id="btnClearChat" title="Clear current conversation">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Chat Thread -->
+      <div class="chat-scroll-area" id="chatScrollArea">
+        <div class="messages-thread" id="messagesThread">
+          <!-- Initial Hero Welcome (Shown on Empty Chat) -->
+          <div class="hero-container" id="heroContainer">
+            <div class="hero-logo-box">
+              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <h1 class="hero-title">How can I help you today?</h1>
+            
+            <div class="hero-suggestions-grid">
+              <div class="suggestion-card" onclick="sendPromptPreset('Write a high-performance Python script for concurrent web requests with async/await.')">
+                <div class="suggestion-card-header">
+                  <svg width="14" height="14"><use xlink:href="#appicon-code"/></svg>
+                  <span>Code & Dev</span>
+                </div>
+                <div class="suggestion-card-title">Write a Python script for concurrent async requests</div>
+              </div>
+
+              <div class="suggestion-card" onclick="sendPromptPreset('Explain how Transformer self-attention mechanism works with an intuitive analogy.')">
+                <div class="suggestion-card-header">
+                  <svg width="14" height="14"><use xlink:href="#appicon-AIThink"/></svg>
+                  <span>Deep Reasoning</span>
+                </div>
+                <div class="suggestion-card-title">Explain Transformer self-attention with an intuitive analogy</div>
+              </div>
+
+              <div class="suggestion-card" onclick="sendPromptPreset('Create an interactive HTML5 Canvas particle animation with glowing physics.')">
+                <div class="suggestion-card-header">
+                  <svg width="14" height="14"><use xlink:href="#appicon-cube"/></svg>
+                  <span>Artifacts</span>
+                </div>
+                <div class="suggestion-card-title">Create an interactive HTML5 particle glow animation</div>
+              </div>
+
+              <div class="suggestion-card" onclick="sendPromptPreset('Plan a 3-day budget travel itinerary for Tokyo with top tech & food spots.')">
+                <div class="suggestion-card-header">
+                  <svg width="14" height="14"><use xlink:href="#appicon-online"/></svg>
+                  <span>Travel & Search</span>
+                </div>
+                <div class="suggestion-card-title">Plan a 3-day Tokyo itinerary with tech and food spots</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Pill Input Dock (Official chat.qwen.ai Signature) -->
+      <div class="input-dock">
+        <div class="input-dock-container">
+
+          <!-- Plus Mode Selector Drawer (Popup above Plus icon) -->
+          <div class="mode-selector-drawer" id="modeSelectorDrawer">
+            <!-- Upload section -->
+            <div class="drawer-section-title">Upload & Media</div>
+            <div class="drawer-upload-row">
+              <button class="drawer-upload-btn" onclick="triggerUpload('camera')">
+                <svg><use xlink:href="#appicon-camera"/></svg>
+                <span>Camera</span>
+              </button>
+              <button class="drawer-upload-btn" onclick="triggerUpload('picture')">
+                <svg><use xlink:href="#appicon-picture"/></svg>
+                <span>Picture</span>
+              </button>
+              <button class="drawer-upload-btn" onclick="triggerUpload('video')">
+                <svg><use xlink:href="#appicon-aiVideo"/></svg>
+                <span>Video</span>
+              </button>
+              <button class="drawer-upload-btn" onclick="triggerUpload('file')">
+                <svg><use xlink:href="#appicon-file"/></svg>
+                <span>File</span>
+              </button>
+            </div>
+
+            <!-- Thinking Mode selection row -->
+            <div class="drawer-thinking-row">
+              <div class="drawer-thinking-label">
+                <svg><use xlink:href="#appicon-AIThink"/></svg>
+                <span>Thinking Process</span>
+              </div>
+              <select class="drawer-thinking-select" id="drawerThinkingSelect">
+                <option value="auto" selected>Auto</option>
+                <option value="deep">Deep</option>
+                <option value="off">Off</option>
+              </select>
+            </div>
+
+            <!-- Tools Master Switch Row -->
+            <div class="drawer-tools-header-row">
+              <div class="drawer-tools-header-left">
+                <svg><use xlink:href="#appicon-aiAgent"/></svg>
+                <span>Tools</span>
+              </div>
+              <label class="qwen-toggle-switch">
+                <input type="checkbox" id="toggleToolsMaster" checked onchange="toggleToolsMaster(this.checked)">
+                <span class="qwen-toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Tools & Specialized Modes grid (All 9 Authentic Qwen Tools) -->
+            <div class="drawer-tools-grid" id="drawerToolsGrid">
+              <div class="drawer-tool-item" id="toolWebdev" onclick="toggleTool('webdev')">
+                <svg><use xlink:href="#appicon-code"/></svg>
+                <span>Web Dev</span>
+              </div>
+              <div class="drawer-tool-item" id="toolImage" onclick="toggleTool('image')">
+                <svg><use xlink:href="#appicon-aiPicture"/></svg>
+                <span>Create Image</span>
+              </div>
+              <div class="drawer-tool-item" id="toolVideo" onclick="toggleTool('video')">
+                <svg><use xlink:href="#appicon-aiVideo"/></svg>
+                <span>Create Video</span>
+              </div>
+              <div class="drawer-tool-item" id="toolSearch" onclick="toggleTool('search')">
+                <svg><use xlink:href="#appicon-online"/></svg>
+                <span>Web search</span>
+              </div>
+              <div class="drawer-tool-item" id="toolResearch" onclick="toggleTool('research')">
+                <svg><use xlink:href="#appicon-graduationCap"/></svg>
+                <span>Deep Research</span>
+              </div>
+              <div class="drawer-tool-item" id="toolSlides" onclick="toggleTool('slides')">
+                <svg><use xlink:href="#appicon-PPT"/></svg>
+                <span>Slides</span>
+              </div>
+              <div class="drawer-tool-item" id="toolArtifacts" onclick="toggleTool('artifacts')">
+                <svg><use xlink:href="#appicon-cube"/></svg>
+                <span>Artifacts</span>
+              </div>
+              <div class="drawer-tool-item" id="toolLearn" onclick="toggleTool('learn')">
+                <svg><use xlink:href="#appicon-book"/></svg>
+                <span>Learn</span>
+              </div>
+              <div class="drawer-tool-item" id="toolTravel" onclick="toggleTool('travel')">
+                <svg><use xlink:href="#appicon-airplane"/></svg>
+                <span>Travel Planner</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attachment Preview Bar (shown when file is selected) -->
+          <div class="attachment-preview-bar" id="attachmentBar"></div>
+
+          <!-- Main Input Row -->
+          <div class="input-main-row">
+            <!-- The Official Plus (+) Mode Button -->
+            <button class="btn-plus-mode" id="btnPlusMode" title="Modes, Upload & Tools">
+              <svg><use xlink:href="#appicon-add"/></svg>
+            </button>
+
+            <!-- Textarea -->
+            <textarea class="input-textarea" id="chatInput" rows="1" placeholder="Ask Qwen... (Shift + Enter for new line)"></textarea>
+
+            <!-- Right Buttons: Voice Mic + Send -->
+            <div class="input-right-buttons">
+              <!-- Voice Microphone Button -->
+              <button class="btn-voice-mic" id="btnVoiceMic" title="Voice Input (Speech-to-Text)">
+                <svg><use xlink:href="#appicon-mic"/></svg>
+              </button>
+
+              <!-- Send & Stop Button -->
+              <button class="btn-submit-action" id="btnSubmitAction" title="Send message">
+                <svg id="iconSend"><use xlink:href="#qwpcicon-sendChat"/></svg>
+                <div id="iconStop" class="stop-square-icon" style="display:none;"></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Mode Badges Bar -->
+          <div class="active-modes-bar" id="activeModesBar">
+            <div class="mode-indicator-chip" id="badgeThinking">
+              <svg><use xlink:href="#appicon-AIThink"/></svg>
+              <span id="badgeThinkingText">Thinking: Auto</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Artifacts / Web Dev Live Preview Slide-Over Panel -->
+    <aside class="artifacts-panel" id="artifactsPanel">
+      <div class="artifacts-header">
+        <div class="artifacts-tabs">
+          <button class="artifact-tab-btn active" id="tabArtifactPreview" onclick="switchArtifactTab('preview')">Preview</button>
+          <button class="artifact-tab-btn" id="tabArtifactCode" onclick="switchArtifactTab('code')">Code</button>
+        </div>
+        <button class="btn-icon" id="btnCloseArtifacts" title="Close Artifacts">&times;</button>
+      </div>
+      <div class="artifacts-body">
+        <iframe class="artifact-iframe" id="artifactIframe" sandbox="allow-scripts"></iframe>
+        <pre class="artifact-code-pre" id="artifactCodePre" style="display:none;"></pre>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Settings Modal Dialog -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>Settings & API Configuration</span>
+        <button class="btn-icon" id="btnCloseSettings">&times;</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Backend Proxy URL</label>
+        <select class="form-select" id="settingBaseUrl">
+          <option value="/proxy" selected>Local Resilient Proxy (/proxy - No CORS, Recommended)</option>
+          <option value="https://chat.qwen.ai">Direct chat.qwen.ai (Requires CORS extension)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Optional DashScope / Custom API Key</label>
+        <input type="password" class="form-input" id="settingAuthToken" placeholder="sk-... (Leave empty to use active Browser Session)">
+        <small style="color: var(--qwen-text-muted); font-size: 0.75rem;">If empty, calls seamlessly use your logged-in browser session with zero WAF blocks.</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Chat Session ID</label>
+        <input type="text" class="form-input" id="settingChatId" placeholder="358b490b-ce45-45bf-bf48-af97ccb049ff">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+        <button class="btn-icon" id="btnCancelSettings" style="width: auto; padding: 6px 14px; border-radius: var(--radius-sm);">Cancel</button>
+        <button class="btn-new-conversation" id="btnSaveSettings" style="width: auto; padding: 8px 18px; border-radius: var(--radius-sm); background: var(--qwen-brand-primary);">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    const state = {
+      theme: localStorage.getItem('qwen_theme') || 'dark',
+      model: localStorage.getItem('qwen_model') || 'qwen4-max',
+      baseUrl: localStorage.getItem('qwen_base_url') || '/proxy',
+      authToken: localStorage.getItem('qwen_token') || '',
+      chatId: localStorage.getItem('qwen_chat_id') || '358b490b-ce45-45bf-bf48-af97ccb049ff',
+      isGenerating: false,
+      thinkingMode: localStorage.getItem('qwen_thinking_mode') || 'auto', // 'auto', 'deep', 'off'
+      toolsEnabled: localStorage.getItem('qwen_tools_enabled') !== 'false',
+      tools: {
+        webdev: false,
+        image: false,
+        video: false,
+        search: false,
+        research: false,
+        slides: false,
+        artifacts: false,
+        learn: false,
+        travel: false
+      },
+      attachments: [],
+      abortController: null,
+      conversations: JSON.parse(localStorage.getItem('qwen_conversations') || '[]'),
+      currentMessages: [],
+      speechRecognition: null,
+      isRecordingVoice: false
+    };
+
+    // DOM References
+    const chatInput = document.getElementById('chatInput');
+    const btnSubmitAction = document.getElementById('btnSubmitAction');
+    const iconSend = document.getElementById('iconSend');
+    const iconStop = document.getElementById('iconStop');
+    const btnPlusMode = document.getElementById('btnPlusMode');
+    const modeSelectorDrawer = document.getElementById('modeSelectorDrawer');
+    const btnVoiceMic = document.getElementById('btnVoiceMic');
+    const messagesThread = document.getElementById('messagesThread');
+    const chatScrollArea = document.getElementById('chatScrollArea');
+    const heroContainer = document.getElementById('heroContainer');
+    const attachmentBar = document.getElementById('attachmentBar');
+    const hiddenFileInput = document.getElementById('hiddenFileInput');
+    const drawerThinkingSelect = document.getElementById('drawerThinkingSelect');
+    const activeModesBar = document.getElementById('activeModesBar');
+    const badgeThinking = document.getElementById('badgeThinking');
+    const badgeThinkingText = document.getElementById('badgeThinkingText');
+    const btnModelPicker = document.getElementById('btnModelPicker');
+    const modelDropdown = document.getElementById('modelDropdown');
+    const currentModelLabel = document.getElementById('currentModelLabel');
+    const btnToggleTheme = document.getElementById('btnToggleTheme');
+    const themeIconSun = document.getElementById('themeIconSun');
+    const themeIconMoon = document.getElementById('themeIconMoon');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+    const btnCloseSidebar = document.getElementById('btnCloseSidebar');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const btnNewChat = document.getElementById('btnNewChat');
+    const btnClearChat = document.getElementById('btnClearChat');
+    const historyList = document.getElementById('historyList');
+    const searchHistory = document.getElementById('searchHistory');
+    const artifactsPanel = document.getElementById('artifactsPanel');
+    const btnToggleArtifacts = document.getElementById('btnToggleArtifacts');
+    const btnCloseArtifacts = document.getElementById('btnCloseArtifacts');
+    const artifactIframe = document.getElementById('artifactIframe');
+    const artifactCodePre = document.getElementById('artifactCodePre');
+    const tabArtifactPreview = document.getElementById('tabArtifactPreview');
+    const tabArtifactCode = document.getElementById('tabArtifactCode');
+    const toastBox = document.getElementById('toastBox');
+    const toastMsg = document.getElementById('toastMsg');
+    const settingsModal = document.getElementById('settingsModal');
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const btnCloseSettings = document.getElementById('btnCloseSettings');
+    const btnCancelSettings = document.getElementById('btnCancelSettings');
+    const btnSaveSettings = document.getElementById('btnSaveSettings');
+    const settingBaseUrl = document.getElementById('settingBaseUrl');
+    const settingAuthToken = document.getElementById('settingAuthToken');
+    const settingChatId = document.getElementById('settingChatId');
+
+    // Marked options setup
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({
+        highlight: function(code, lang) {
+          if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+            try { return hljs.highlight(code, { language: lang }).value; } catch(e) {}
+          }
+          return typeof hljs !== 'undefined' ? hljs.highlightAuto(code).value : code;
+        },
+        breaks: true,
+        gfm: true
+      });
+    }
+
+    function renderMarkdown(text) {
+      if (!text) return '';
+      if (typeof marked !== 'undefined') {
+        let html = marked.parse(text);
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        temp.querySelectorAll('pre').forEach(pre => {
+          const code = pre.querySelector('code');
+          const lang = code ? (code.className.match(/language-(\w+)/) || [])[1] || 'code' : 'code';
+          
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-block-wrapper';
+          wrapper.innerHTML = `
+            <div class="code-block-header">
+              <span>${lang}</span>
+              <div style="display:flex; gap:6px;">
+                <button class="code-copy-btn" onclick="openCodeInArtifact(this)">
+                  <svg width="12" height="12"><use xlink:href="#appicon-cube"/></svg>
+                  <span>Artifact</span>
+                </button>
+                <button class="code-copy-btn" onclick="copyCodeBlock(this)">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+          `;
+          pre.parentNode.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
+        });
+        return temp.innerHTML;
+      }
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag] || tag));
+    }
+
+    function showToast(msg) {
+      toastMsg.textContent = msg;
+      toastBox.style.display = 'flex';
+      setTimeout(() => { toastBox.style.display = 'none'; }, 2200);
+    }
+
+    // Theme Management
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      state.theme = theme;
+      localStorage.setItem('qwen_theme', theme);
+      if (theme === 'dark') {
+        themeIconSun.style.display = 'none';
+        themeIconMoon.style.display = 'block';
+      } else {
+        themeIconSun.style.display = 'block';
+        themeIconMoon.style.display = 'none';
+      }
+    }
+
+    btnToggleTheme.addEventListener('click', () => {
+      applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+      showToast(`Switched to ${state.theme} theme`);
+    });
+
+    // Model Selector Dropdown
+    btnModelPicker.addEventListener('click', (e) => {
+      e.stopPropagation();
+      modelDropdown.classList.toggle('show');
+    });
+
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        state.model = item.dataset.model;
+        currentModelLabel.textContent = item.querySelector('.dropdown-item-name').childNodes[0].textContent.trim();
+        localStorage.setItem('qwen_model', state.model);
+        modelDropdown.classList.remove('show');
+        showToast(`Model set to ${currentModelLabel.textContent}`);
+      });
+    });
+
+    document.addEventListener('click', () => {
+      modelDropdown.classList.remove('show');
+    });
+
+    // Plus (+) Icon Mode Selector Drawer
+    btnPlusMode.addEventListener('click', (e) => {
+      e.stopPropagation();
+      modeSelectorDrawer.classList.toggle('open');
+      btnPlusMode.classList.toggle('active', modeSelectorDrawer.classList.contains('open'));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!modeSelectorDrawer.contains(e.target) && e.target !== btnPlusMode) {
+        modeSelectorDrawer.classList.remove('open');
+        btnPlusMode.classList.remove('active');
+      }
+    });
+
+    // Upload Triggers
+    window.triggerUpload = function(type) {
+      modeSelectorDrawer.classList.remove('open');
+      btnPlusMode.classList.remove('active');
+      if (type === 'camera') {
+        hiddenFileInput.setAttribute('capture', 'environment');
+        hiddenFileInput.accept = 'image/*';
+      } else if (type === 'picture') {
+        hiddenFileInput.removeAttribute('capture');
+        hiddenFileInput.accept = 'image/*';
+      } else if (type === 'video') {
+        hiddenFileInput.removeAttribute('capture');
+        hiddenFileInput.accept = 'video/*';
+      } else {
+        hiddenFileInput.removeAttribute('capture');
+        hiddenFileInput.accept = '*/*';
+      }
+      hiddenFileInput.click();
+    };
+
+    function processFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      Array.from(fileList).forEach(file => {
+        const reader = new FileReader();
+        if (file.type.startsWith('image/')) {
+          reader.onload = (e) => {
+            state.attachments.push({
+              name: file.name,
+              size: (file.size / 1024).toFixed(1) + ' KB',
+              type: file.type,
+              dataUrl: e.target.result
+            });
+            renderAttachmentBar();
+          };
+          reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+          reader.onload = (e) => {
+            state.attachments.push({
+              name: file.name,
+              size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+              type: file.type,
+              isVideo: true
+            });
+            renderAttachmentBar();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          reader.onload = (e) => {
+            state.attachments.push({
+              name: file.name,
+              size: (file.size / 1024).toFixed(1) + ' KB',
+              type: file.type,
+              content: e.target.result
+            });
+            renderAttachmentBar();
+          };
+          reader.readAsText(file);
+        }
+      });
+      showToast(`Added ${fileList.length} attachment(s)`);
+    }
+
+    hiddenFileInput.addEventListener('change', function(e) {
+      processFiles(this.files);
+      this.value = '';
+    });
+
+    function renderAttachmentBar() {
+      if (state.attachments.length === 0) {
+        attachmentBar.classList.remove('active');
+        attachmentBar.innerHTML = '';
+        btnSubmitAction.disabled = !chatInput.value.trim() && !state.isGenerating;
+        return;
+      }
+      btnSubmitAction.disabled = state.isGenerating;
+      attachmentBar.classList.add('active');
+      attachmentBar.innerHTML = state.attachments.map((att, idx) => `
+        <div class="attachment-chip">
+          ${att.dataUrl ? `<img src="${att.dataUrl}" style="width:16px; height:16px; border-radius:3px; object-fit:cover;" />` : (att.isVideo ? `<svg width="12" height="12"><use xlink:href="#appicon-aiVideo"/></svg>` : `<svg width="12" height="12"><use xlink:href="#appicon-file"/></svg>`)}
+          <span>${escapeHtml(att.name)} (${att.size})</span>
+          <span class="attachment-chip-close" onclick="removeAttachment(${idx})">&times;</span>
+        </div>
+      `).join('');
+    }
+
+    window.removeAttachment = function(idx) {
+      state.attachments.splice(idx, 1);
+      renderAttachmentBar();
+    };
+
+    // Tool Metadata & Guidance Prompts
+    const toolMeta = {
+      webdev: { label: 'Web Dev', icon: 'code', prompt: '[Mode: Web Dev - Generate production-ready HTML/CSS/JS code with interactive implementation]' },
+      image: { label: 'Create Image', icon: 'aiPicture', prompt: '[Mode: Create Image - Focus on visual composition, detailed art prompt generation, and visual layout]' },
+      video: { label: 'Create Video', icon: 'aiVideo', prompt: '[Mode: Create Video - Provide scene script, camera motion directions, and video generation prompts]' },
+      search: { label: 'Web search', icon: 'online', prompt: '' },
+      research: { label: 'Deep Research', icon: 'graduationCap', prompt: '[Mode: Deep Research - Perform exhaustive multi-step research with sources and synthesized breakdown]' },
+      slides: { label: 'Slides', icon: 'PPT', prompt: '[Mode: Slides - Structure response into professional presentation slide decks]' },
+      artifacts: { label: 'Artifacts', icon: 'cube', prompt: '' },
+      learn: { label: 'Learn', icon: 'book', prompt: '[Mode: Learn - Act as a tutor, explaining step-by-step with checkpoints and review questions]' },
+      travel: { label: 'Travel Planner', icon: 'airplane', prompt: '[Mode: Travel Planner - Provide a detailed day-by-day travel plan, itinerary, transit, and tips]' }
+    };
+
+    // Thinking Mode Selection
+    drawerThinkingSelect.value = state.thinkingMode;
+    drawerThinkingSelect.addEventListener('change', function() {
+      state.thinkingMode = this.value;
+      localStorage.setItem('qwen_thinking_mode', state.thinkingMode);
+      updateActiveModesBar();
+      showToast(`Thinking mode: ${state.thinkingMode.toUpperCase()}`);
+    });
+
+    // Master Tools Switch Toggle
+    const toggleToolsMasterEl = document.getElementById('toggleToolsMaster');
+    if (toggleToolsMasterEl) {
+      toggleToolsMasterEl.checked = state.toolsEnabled;
+    }
+    window.toggleToolsMaster = function(enabled) {
+      state.toolsEnabled = enabled;
+      localStorage.setItem('qwen_tools_enabled', enabled);
+      const grid = document.getElementById('drawerToolsGrid');
+      if (grid) {
+        grid.style.opacity = enabled ? '1' : '0.4';
+        grid.style.pointerEvents = enabled ? 'auto' : 'none';
+      }
+      if (!enabled) {
+        Object.keys(state.tools).forEach(k => {
+          state.tools[k] = false;
+          const el = document.getElementById(`tool${k.charAt(0).toUpperCase() + k.slice(1)}`);
+          if (el) el.classList.remove('active');
+        });
+        artifactsPanel.classList.remove('open');
+      }
+      updateActiveModesBar();
+      showToast(`Tools Master: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+    };
+
+    function updateActiveModesBar() {
+      if (state.thinkingMode === 'off') {
+        badgeThinking.style.display = 'none';
+      } else {
+        badgeThinking.style.display = 'flex';
+        badgeThinkingText.textContent = `Thinking: ${state.thinkingMode.toUpperCase()}`;
+      }
+
+      // Add tool badges with close x button
+      const toolBadges = state.toolsEnabled ? Object.entries(state.tools)
+        .filter(([t, active]) => active)
+        .map(([t]) => {
+          const meta = toolMeta[t] || { label: t.toUpperCase(), icon: 'cube' };
+          return `
+            <div class="mode-indicator-chip tool-badge">
+              <svg width="12" height="12"><use xlink:href="#appicon-${meta.icon}"/></svg>
+              <span>${meta.label}</span>
+              <span class="tool-badge-close" onclick="event.stopPropagation(); toggleTool('${t}')" title="Remove">&times;</span>
+            </div>
+          `;
+        }).join('') : '';
+
+      activeModesBar.querySelectorAll('.tool-badge').forEach(e => e.remove());
+      const temp = document.createElement('div');
+      temp.innerHTML = toolBadges;
+      while (temp.firstChild) {
+        activeModesBar.appendChild(temp.firstChild);
+      }
+    }
+
+    // Toggle Tools in Drawer
+    window.toggleTool = function(toolName) {
+      if (!state.toolsEnabled) {
+        showToast('Tools master switch is OFF. Enable tools first.');
+        return;
+      }
+      state.tools[toolName] = !state.tools[toolName];
+      const el = document.getElementById(`tool${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`);
+      if (el) el.classList.toggle('active', state.tools[toolName]);
+      updateActiveModesBar();
+      const meta = toolMeta[toolName] || { label: toolName };
+      showToast(`${meta.label} ${state.tools[toolName] ? 'enabled' : 'disabled'}`);
+      if (toolName === 'artifacts') {
+        artifactsPanel.classList.toggle('open', state.tools[toolName]);
+      }
+    };
+
+    // Voice Input (Speech-to-Text via Web Speech API)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = navigator.language || 'en-US';
+
+      recognition.onstart = () => {
+        state.isRecordingVoice = true;
+        btnVoiceMic.classList.add('recording');
+        showToast('Listening... Speak now');
+      };
+
+      recognition.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        chatInput.value = transcript;
+        chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+
+      recognition.onerror = () => {
+        state.isRecordingVoice = false;
+        btnVoiceMic.classList.remove('recording');
+      };
+
+      recognition.onend = () => {
+        state.isRecordingVoice = false;
+        btnVoiceMic.classList.remove('recording');
+      };
+
+      state.speechRecognition = recognition;
+    }
+
+    btnVoiceMic.addEventListener('click', () => {
+      if (!state.speechRecognition) {
+        showToast('Speech recognition not supported on this browser');
+        return;
+      }
+      if (state.isRecordingVoice) {
+        state.speechRecognition.stop();
+      } else {
+        try {
+          state.speechRecognition.start();
+        } catch(e) {}
+      }
+    });
+
+    // Auto-resize Textarea
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+      btnSubmitAction.disabled = !this.value.trim() && !state.isGenerating;
+    });
+
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!state.isGenerating && this.value.trim()) {
+          sendMessage();
+        }
+      }
+    });
+
+    // Send / Stop action
+    btnSubmitAction.addEventListener('click', () => {
+      if (state.isGenerating) {
+        stopGeneration();
+      } else if (chatInput.value.trim()) {
+        sendMessage();
+      }
+    });
+
+    function setGeneratingState(generating) {
+      state.isGenerating = generating;
+      if (generating) {
+        btnSubmitAction.classList.add('generating');
+        btnSubmitAction.title = 'Stop generation';
+        iconSend.style.display = 'none';
+        iconStop.style.display = 'block';
+        btnSubmitAction.disabled = false;
+      } else {
+        btnSubmitAction.classList.remove('generating');
+        btnSubmitAction.title = 'Send';
+        iconSend.style.display = 'block';
+        iconStop.style.display = 'none';
+        btnSubmitAction.disabled = !chatInput.value.trim();
+      }
+    }
+
+    // Stop Generation
+    async function stopGeneration() {
+      if (state.abortController) {
+        state.abortController.abort();
+      }
+      const stopUrl = `${state.baseUrl}/api/v2/chat/completions/stop?chat_id=${encodeURIComponent(state.chatId)}`;
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.authToken) headers['Authorization'] = `Bearer ${state.authToken}`;
+        await fetch(stopUrl, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ chat_id: state.chatId })
+        });
+      } catch(e) {}
+      setGeneratingState(false);
+      showToast('Generation stopped');
+    }
+
+    // Preset prompts
+    window.sendPromptPreset = function(prompt) {
+      chatInput.value = prompt;
+      sendMessage();
+    };
+
+    // Send Message
+    async function sendMessage() {
+      let prompt = chatInput.value.trim();
+      const currentAttachments = [...state.attachments];
+      if (!prompt && currentAttachments.length === 0) return;
+      if (state.isGenerating) return;
+
+      if (!prompt && currentAttachments.length > 0) {
+        prompt = "Please analyze the attached content.";
+      }
+
+      // Hide hero greeting
+      if (heroContainer) heroContainer.style.display = 'none';
+
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      state.attachments = [];
+      renderAttachmentBar();
+      setGeneratingState(true);
+
+      // Append User message with attachments preview
+      appendUserMessage(prompt, currentAttachments);
+
+      // Build full prompt including attached files/images
+      let fullPromptText = prompt;
+      if (currentAttachments.length > 0) {
+        for (let att of currentAttachments) {
+          if (att.content) {
+            fullPromptText += `\n\n[Attached File: ${att.name}]\n\`\`\`\n${att.content}\n\`\`\``;
+          } else if (att.dataUrl) {
+            fullPromptText += `\n\n[Attached Image: ${att.name}]`;
+          } else if (att.isVideo) {
+            fullPromptText += `\n\n[Attached Video: ${att.name}]`;
+          }
+        }
+      }
+
+      // Prepend active tool modes guidance
+      if (state.toolsEnabled) {
+        const toolPrefixes = [];
+        Object.entries(state.tools).forEach(([toolKey, isActive]) => {
+          if (isActive && toolMeta[toolKey]?.prompt) {
+            toolPrefixes.push(toolMeta[toolKey].prompt);
+          }
+        });
+        if (toolPrefixes.length > 0) {
+          fullPromptText = `${toolPrefixes.join('\n')}\n\n${fullPromptText}`;
+        }
+      }
+
+      state.currentMessages.push({ role: 'user', content: fullPromptText, rawPrompt: prompt, attachments: currentAttachments });
+
+      // Create Assistant message
+      const assistantNodes = createAssistantMessageNode();
+      messagesThread.appendChild(assistantNodes.container);
+      scrollChatToBottom();
+
+      let fullContent = '';
+      let fullReasoning = '';
+      let thinkingSeconds = 0;
+      let thinkingTimer = null;
+
+      if (state.thinkingMode !== 'off') {
+        assistantNodes.thinkingBox.style.display = 'block';
+        thinkingTimer = setInterval(() => {
+          thinkingSeconds++;
+          assistantNodes.thinkingTitle.textContent = `Thinking (${thinkingSeconds}s)...`;
+        }, 1000);
+      }
+
+      state.abortController = new AbortController();
+
+      try {
+        const endpoint = `${state.baseUrl}/api/v2/chat/completions?chat_id=${encodeURIComponent(state.chatId)}`;
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.authToken) headers['Authorization'] = `Bearer ${state.authToken}`;
+
+        const payload = {
+          model: state.model,
+          messages: state.currentMessages,
+          stream: true,
+          web_search: !!(state.toolsEnabled && state.tools.search)
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(payload),
+          signal: state.abortController.signal
+        });
+
+        if (!response.ok) {
+          let errText = `HTTP ${response.status}`;
+          try {
+            const errJson = await response.json();
+            errText = errJson.error || errJson.details || errText;
+          } catch(e) {}
+          throw new Error(errText);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let isDone = false;
+
+        while (!isDone) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith(':')) continue;
+
+            if (trimmed.includes('[DONE]')) {
+              isDone = true;
+              break;
+            }
+
+            if (trimmed.startsWith('data:')) {
+              try {
+                const data = JSON.parse(trimmed.slice(5).trim());
+                const delta = data.choices && data.choices[0] && data.choices[0].delta;
+                if (!delta) continue;
+
+                if (delta.reasoning_step) {
+                  assistantNodes.thinkingTitle.textContent = delta.reasoning_step;
+                }
+
+                if (delta.reasoning_content) {
+                  fullReasoning += delta.reasoning_content;
+                  assistantNodes.thinkingDetails.textContent = fullReasoning;
+                }
+
+                if (delta.content) {
+                  if (thinkingTimer) {
+                    clearInterval(thinkingTimer);
+                    thinkingTimer = null;
+                    assistantNodes.thinkingTitle.textContent = `Thinking completed (${thinkingSeconds}s)`;
+                    assistantNodes.thinkingBox.classList.remove('live');
+                    assistantNodes.thinkingBulb.classList.remove('thinking-live-pulse');
+                  }
+
+                  fullContent += delta.content;
+                  assistantNodes.contentEl.innerHTML = renderMarkdown(fullContent) + '<span class="qwen-stream-cursor"></span>';
+                  scrollChatToBottom();
+                }
+              } catch(e) {}
+            }
+          }
+        }
+
+        if (thinkingTimer) {
+          clearInterval(thinkingTimer);
+          assistantNodes.thinkingTitle.textContent = 'Thinking completed';
+          assistantNodes.thinkingBox.classList.remove('live');
+        }
+
+        const cursor = assistantNodes.contentEl.querySelector('.qwen-stream-cursor');
+        if (cursor) cursor.remove();
+
+        state.currentMessages.push({ role: 'assistant', content: fullContent });
+        saveCurrentConversation();
+
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          if (!fullContent) {
+            assistantNodes.contentEl.innerHTML = `<span style="color: var(--qwen-text-muted); font-size: 0.88rem;">Generation cancelled.</span>`;
+          }
+        } else {
+          assistantNodes.contentEl.innerHTML = `<span style="color: #ef4444; font-weight: 500;">Error: ${escapeHtml(err.message)}</span><br><small style="color: var(--qwen-text-muted);">Please check backend proxy or browser session connection.</small>`;
+        }
+      } finally {
+        if (thinkingTimer) clearInterval(thinkingTimer);
+        const cursor = assistantNodes.contentEl.querySelector('.qwen-stream-cursor');
+        if (cursor) cursor.remove();
+        setGeneratingState(false);
+        state.abortController = null;
+      }
+    }
+
+    // UI Nodes
+    function appendUserMessage(text, attachments = []) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message-container message-user';
+
+      let attachHtml = '';
+      if (attachments && attachments.length > 0) {
+        attachHtml = '<div class="user-attachments-grid" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">';
+        for (let att of attachments) {
+          if (att.dataUrl) {
+            attachHtml += `<div style="position:relative; border-radius:8px; overflow:hidden; max-width:220px; max-height:180px; border:1px solid rgba(255,255,255,0.15);"><img src="${att.dataUrl}" style="width:100%; height:100%; object-fit:cover; display:block;" /></div>`;
+          } else {
+            attachHtml += `<div style="display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:6px; font-size:0.8rem; border:1px solid rgba(255,255,255,0.15);"><svg width="14" height="14"><use xlink:href="#appicon-file"/></svg><span>${escapeHtml(att.name)}</span></div>`;
+          }
+        }
+        attachHtml += '</div>';
+      }
+
+      msgDiv.innerHTML = `
+        <div class="user-bubble">
+          ${attachHtml}
+          ${text ? `<div>${escapeHtml(text)}</div>` : ''}
+        </div>
+        <div class="user-actions">
+          <button class="action-btn" onclick="copyUserPrompt(this)" title="Copy text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+      `;
+      messagesThread.appendChild(msgDiv);
+    }
+
+    function createAssistantMessageNode() {
+      const container = document.createElement('div');
+      container.className = 'message-container message-assistant';
+
+      const avatar = document.createElement('div');
+      avatar.className = 'assistant-avatar';
+      avatar.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
+
+      const body = document.createElement('div');
+      body.className = 'assistant-body';
+
+      // Thinking Box
+      const thinkingBox = document.createElement('div');
+      thinkingBox.className = 'qwen-thinking-box live';
+      thinkingBox.style.display = 'none';
+
+      const thinkingSummary = document.createElement('div');
+      thinkingSummary.className = 'thinking-summary';
+      thinkingSummary.innerHTML = `
+        <div class="thinking-title-left">
+          <span class="thinking-live-pulse" id="thinkingBulb"></span>
+          <span class="thinking-shimmer" id="thinkingTitle">Thinking...</span>
+        </div>
+        <svg class="thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      `;
+
+      const thinkingDetails = document.createElement('div');
+      thinkingDetails.className = 'thinking-details';
+
+      thinkingSummary.addEventListener('click', () => {
+        thinkingBox.classList.toggle('expanded');
+      });
+
+      thinkingBox.appendChild(thinkingSummary);
+      thinkingBox.appendChild(thinkingDetails);
+
+      const contentEl = document.createElement('div');
+      contentEl.className = 'assistant-content';
+      contentEl.innerHTML = '<span class="qwen-stream-cursor"></span>';
+
+      const actionsEl = document.createElement('div');
+      actionsEl.className = 'assistant-actions';
+      actionsEl.innerHTML = `
+        <button class="action-btn" onclick="copyAssistantResponse(this)" title="Copy response">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span>Copy</span>
+        </button>
+        <button class="action-btn" onclick="regenerateLast()" title="Regenerate">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          <span>Regenerate</span>
+        </button>
+      `;
+
+      body.appendChild(thinkingBox);
+      body.appendChild(contentEl);
+      body.appendChild(actionsEl);
+
+      container.appendChild(avatar);
+      container.appendChild(body);
+
+      return {
+        container,
+        thinkingBox,
+        thinkingTitle: thinkingSummary.querySelector('#thinkingTitle'),
+        thinkingBulb: thinkingSummary.querySelector('#thinkingBulb'),
+        thinkingDetails,
+        contentEl
+      };
+    }
+
+    function scrollChatToBottom() {
+      chatScrollArea.scrollTop = chatScrollArea.scrollHeight;
+    }
+
+    // Copy Utilities
+    function safeCopy(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      }
+      return fallbackCopy(text);
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch(e) {}
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    }
+
+    window.copyUserPrompt = function(btn) {
+      const bubble = btn.closest('.message-user')?.querySelector('.user-bubble');
+      if (bubble) {
+        const clone = bubble.cloneNode(true);
+        const atts = clone.querySelector('.user-attachments-grid');
+        if (atts) atts.remove();
+        safeCopy(clone.innerText.trim()).then(() => {
+          showToast('Copied prompt to clipboard');
+          const orig = btn.innerHTML;
+          btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>`;
+          setTimeout(() => { btn.innerHTML = orig; }, 1500);
+        });
+      }
+    };
+
+    window.copyText = function(btn, text) {
+      safeCopy(text).then(() => {
+        showToast('Copied to clipboard');
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>`;
+        setTimeout(() => { btn.innerHTML = orig; }, 1500);
+      });
+    };
+
+    window.copyAssistantResponse = function(btn) {
+      const msgContainer = btn.closest('.message-assistant');
+      const content = msgContainer.querySelector('.assistant-content');
+      copyText(btn, content.innerText);
+    };
+
+    window.copyCodeBlock = function(btn) {
+      const pre = btn.closest('.code-block-wrapper').querySelector('pre');
+      safeCopy(pre.innerText).then(() => {
+        showToast('Code copied to clipboard');
+        btn.querySelector('span').textContent = 'Copied!';
+        setTimeout(() => { btn.querySelector('span').textContent = 'Copy'; }, 1500);
+      });
+    };
+
+    window.openCodeInArtifact = function(btn) {
+      const code = btn.closest('.code-block-wrapper').querySelector('pre').innerText;
+      artifactCodePre.textContent = code;
+      artifactIframe.srcdoc = code;
+      artifactsPanel.classList.add('open');
+      showToast('Artifact loaded into sandbox');
+    };
+
+    window.regenerateLast = function() {
+      if (state.isGenerating || state.currentMessages.length === 0) return;
+      if (state.currentMessages[state.currentMessages.length - 1].role === 'assistant') {
+        state.currentMessages.pop();
+        const lastAsst = messagesThread.querySelector('.message-assistant:last-child');
+        if (lastAsst) lastAsst.remove();
+      }
+      const lastUserIdx = state.currentMessages.map(m => m.role).lastIndexOf('user');
+      if (lastUserIdx !== -1) {
+        const lastUserMsg = state.currentMessages[lastUserIdx];
+        chatInput.value = lastUserMsg.rawPrompt || lastUserMsg.content;
+        state.attachments = lastUserMsg.attachments ? [...lastUserMsg.attachments] : [];
+        renderAttachmentBar();
+        state.currentMessages.splice(lastUserIdx, 1);
+        const lastUserEl = messagesThread.querySelector('.message-user:last-child');
+        if (lastUserEl) lastUserEl.remove();
+        sendMessage();
+      }
+    };
+
+    // Artifacts Panel Tabs
+    window.switchArtifactTab = function(tab) {
+      if (tab === 'preview') {
+        tabArtifactPreview.classList.add('active');
+        tabArtifactCode.classList.remove('active');
+        artifactIframe.style.display = 'block';
+        artifactCodePre.style.display = 'none';
+      } else {
+        tabArtifactPreview.classList.remove('active');
+        tabArtifactCode.classList.add('active');
+        artifactIframe.style.display = 'none';
+        artifactCodePre.style.display = 'block';
+      }
+    };
+
+    btnToggleArtifacts.addEventListener('click', () => {
+      artifactsPanel.classList.toggle('open');
+    });
+
+    btnCloseArtifacts.addEventListener('click', () => {
+      artifactsPanel.classList.remove('open');
+    });
+
+    // Chat History Management
+    function saveCurrentConversation() {
+      if (state.currentMessages.length === 0) return;
+      const title = state.currentMessages[0].content.slice(0, 32);
+      const existing = state.conversations.find(c => c.id === state.chatId);
+      if (existing) {
+        existing.messages = state.currentMessages;
+        existing.updatedAt = Date.now();
+      } else {
+        state.conversations.unshift({
+          id: state.chatId,
+          title: title,
+          messages: state.currentMessages,
+          updatedAt: Date.now()
+        });
+      }
+      localStorage.setItem('qwen_conversations', JSON.stringify(state.conversations.slice(0, 25)));
+      renderHistoryList();
+    }
+
+    function renderHistoryList(filter = '') {
+      historyList.innerHTML = '';
+      const list = filter 
+        ? state.conversations.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()))
+        : state.conversations;
+
+      list.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'history-item' + (c.id === state.chatId ? ' active' : '');
+        item.innerHTML = `
+          <span class="history-item-title">${escapeHtml(c.title)}</span>
+          <button class="history-item-delete" onclick="deleteHistory(event, '${c.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        `;
+        item.addEventListener('click', () => loadConversation(c.id));
+        historyList.appendChild(item);
+      });
+    }
+
+    searchHistory.addEventListener('input', function() {
+      renderHistoryList(this.value.trim());
+    });
+
+    function loadConversation(id) {
+      const conv = state.conversations.find(c => c.id === id);
+      if (!conv) return;
+      state.chatId = id;
+      state.currentMessages = conv.messages || [];
+      if (heroContainer) heroContainer.style.display = 'none';
+      messagesThread.innerHTML = '';
+
+      state.currentMessages.forEach(m => {
+        if (m.role === 'user') {
+          appendUserMessage(m.rawPrompt || m.content, m.attachments || []);
+        } else {
+          const nodes = createAssistantMessageNode();
+          nodes.contentEl.innerHTML = renderMarkdown(m.content);
+          messagesThread.appendChild(nodes.container);
+        }
+      });
+      renderHistoryList();
+      scrollChatToBottom();
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+    }
+
+    window.deleteHistory = function(e, id) {
+      e.stopPropagation();
+      state.conversations = state.conversations.filter(c => c.id !== id);
+      localStorage.setItem('qwen_conversations', JSON.stringify(state.conversations));
+      renderHistoryList();
+      showToast('Conversation deleted');
+    };
+
+    btnNewChat.addEventListener('click', () => {
+      state.chatId = 'chat_' + Math.random().toString(36).substring(2, 10);
+      state.currentMessages = [];
+      messagesThread.innerHTML = '';
+      if (heroContainer) {
+        heroContainer.style.display = 'flex';
+        messagesThread.appendChild(heroContainer);
+      }
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+      showToast('New chat started');
+      fetch('/proxy/api/v2/new_chat', { method: 'POST' }).catch(() => {});
+    });
+
+    btnClearChat.addEventListener('click', () => {
+      btnNewChat.click();
+    });
+
+    // Sidebar Toggles
+    btnToggleSidebar.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      sidebarBackdrop.classList.toggle('show');
+    });
+
+    btnCloseSidebar.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+    });
+
+    sidebarBackdrop.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+    });
+
+    // Settings Modal
+    btnOpenSettings.addEventListener('click', () => {
+      settingBaseUrl.value = state.baseUrl;
+      settingAuthToken.value = state.authToken;
+      settingChatId.value = state.chatId;
+      settingsModal.style.display = 'flex';
+    });
+
+    btnCloseSettings.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+    btnCancelSettings.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+
+    btnSaveSettings.addEventListener('click', () => {
+      state.baseUrl = settingBaseUrl.value;
+      state.authToken = settingAuthToken.value.trim();
+      if (settingChatId.value.trim()) state.chatId = settingChatId.value.trim();
+
+      localStorage.setItem('qwen_base_url', state.baseUrl);
+      localStorage.setItem('qwen_token', state.authToken);
+      localStorage.setItem('qwen_chat_id', state.chatId);
+
+      settingsModal.style.display = 'none';
+      showToast('Settings saved successfully');
+    });
+
+    // Drag and Drop File Upload
+    window.addEventListener('dragover', (e) => { e.preventDefault(); });
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processFiles(e.dataTransfer.files);
+      }
+    });
+
+    // Initialize UI
+    applyTheme(state.theme);
+    updateActiveModesBar();
+    renderHistoryList();
+    btnSubmitAction.disabled = true;
+
+    // Restore active model
+    const activeModelItem = document.querySelector(`.dropdown-item[data-model="${state.model}"]`);
+    if (activeModelItem) {
+      document.querySelectorAll('.dropdown-item').forEach(i => i.classList.remove('active'));
+      activeModelItem.classList.add('active');
+      currentModelLabel.textContent = activeModelItem.querySelector('.dropdown-item-name').childNodes[0].textContent.trim();
+    }
+  </script>
+</body>
+</html>
