@@ -266,6 +266,16 @@ class QwenStudioHandler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
+        # Cloud Health Check endpoint (Render /healthz and /health)
+        if self.path in ["/healthz", "/healthz/", "/health", "/health/"]:
+            resp = b'{"status": "ok", "healthy": true}'
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(resp)))
+            self.end_headers()
+            self.wfile.write(resp)
+            return
+
         # OpenAI Models endpoint
         if self.path in ["/v1/models", "/models", "/api/v1/models"] or self.path.startswith("/v1/models"):
             models_data = {
